@@ -39,9 +39,9 @@ class HSBot(discord.Client):
             user (int): User ID
 
         Returns:
-            dict: Active panel
+            dict: Active panels
         """
-        total = set()
+        total = {}
         if server not in self.active_panel:
             return total
         if "all" in self.active_panel[server]:
@@ -50,20 +50,30 @@ class HSBot(discord.Client):
             total.update(self.active_panel[server][user])
         return total
     
-    def add_active_panel(self, message, user, type, info=None):
+    def add_active_panel(self, message, user, types, info=None):
         """Add an active panel for a specific user
 
         Args:
             message (discord.Message): Message object (to be the active panel)
-            user (discord.User): User
-            type (str): Type of panel
+            user (discord.User | str): User
+            types (set): types of panel
         """
         if message.guild.id not in self.active_panel:
             self.active_panel[message.guild.id] = {}
-        if user != "all":
-            self.active_panel[message.guild.id][user.id] = {"id": message.id, "type": type, "info": info}
-        else:
-            self.active_panel[message.guild.id][user] = {"id": message.id, "type": type, "info": info}
+        if user != "all": user = user.id
+        
+        if user not in self.active_panel[message.guild.id]:
+            self.active_panel[message.guild.id][user] = {}
+        self.active_panel[message.guild.id][user][message.id] = {"id": message.id, "types": types, "info": info, "user": user}
+            
+    def remove_active_panel(self, message, user):
+        """Remove an active panel from a specific user
+
+        Args:
+            message (discord.Message): Message object (to be the active panel)
+            user (discord.User | str): User
+        """
+        del self.active_panel[message.guild.id][user][message.id]
     
     def add_command(self, name, func):
         """Add a command to the bot
@@ -92,7 +102,7 @@ class HSBot(discord.Client):
         """
         embed = discord.Embed(title="Info", color=0x6db977)
         embed.description = message
-        await channel.send(embed=embed)
+        return await channel.send(embed=embed)
         
     async def send_error(self, channel, message):
         """Send an error message
@@ -103,7 +113,7 @@ class HSBot(discord.Client):
         """
         embed = discord.Embed(title="Error", color=0xa00000)
         embed.description = message
-        await channel.send(embed=embed)
+        return await channel.send(embed=embed)
         
     async def on_ready(self):
         """Event triggered when the bot becomes online"""
@@ -126,7 +136,9 @@ class HSBot(discord.Client):
         if user == self.user:
             return
         
-        active = self.get_active_panel(reaction.message.guild.id, user.id)
-        if reaction.message.id == active["id"]:
-            if active["type"] in self.reactions:
-                await self.reactions[active["type"]](self, reaction, user)
+        active = self.get_active_panels(reaction.message.guild.id, user.id)
+        for mid in active:
+            if reaction.message.id == mid:
+                for t in active[mid]["types"]:
+                    if t in self.reactions:
+                        await self.reactions[t](self, reaction, user, active[mid])

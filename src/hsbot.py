@@ -1,6 +1,7 @@
 import logging
 
 import client
+import utils
 
 
 async def command_hello(self, message, args):
@@ -9,6 +10,9 @@ async def command_hello(self, message, args):
 
 def setup(client):   
     client.add_command("hello", command_hello)
+    client.add_command("deletable", utils.command_deletable)
+    
+    client.add_reaction("deletable", utils.reaction_deletable)
     
 
 if __name__ == "__main__":
