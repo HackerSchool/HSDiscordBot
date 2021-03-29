@@ -31,41 +31,39 @@ class HSBot(discord.Client):
         with open(file, "rb") as f:
             self.dm, self.pcs, self.npcs, self.items = pickle.load(f)
         
-    def get_active_panel(self, server, player):
-        """Get the active panel for a specific user
+    def get_active_panels(self, server, user):
+        """Get the active panels for a specific user
 
         Args:
             server (int): Guild ID
-            player (int): Player ID
+            user (int): User ID
 
         Returns:
             dict: Active panel
         """
+        total = set()
         if server not in self.active_panel:
-            return None
-        if player not in self.active_panel[server]:
-            return None
-        return self.active_panel[server][player]
+            return total
+        if "all" in self.active_panel[server]:
+            total.update(self.active_panel[server]["all"])
+        if user in self.active_panel[server]:
+            total.update(self.active_panel[server][user])
+        return total
     
-    def set_active_panel(self, message, player, type, page, pages):
-        """Set the active panel for a specific user
+    def add_active_panel(self, message, user, type, info=None):
+        """Add an active panel for a specific user
 
         Args:
             message (discord.Message): Message object (to be the active panel)
-            player (discord.User): User
+            user (discord.User): User
             type (str): Type of panel
-            page (int): Page number
-            pages (int): Number of pages
         """
         if message.guild.id not in self.active_panel:
             self.active_panel[message.guild.id] = {}
-        self.active_panel[message.guild.id][player.id] = {"id": message.id, "page": page, "pages": pages, "type": type}
-    
-    async def update_active_panel(self, message, func):
-        panel = self.get_active_panel(message.guild.id, message.author.id)
-        if panel is not None:
-            msg = await message.channel.fetch_message(panel["id"])
-            await msg.edit(embed=func(panel))
+        if user != "all":
+            self.active_panel[message.guild.id][user.id] = {"id": message.id, "type": type, "info": info}
+        else:
+            self.active_panel[message.guild.id][user] = {"id": message.id, "type": type, "info": info}
     
     def add_command(self, name, func):
         """Add a command to the bot
@@ -92,7 +90,7 @@ class HSBot(discord.Client):
             channel (discord.Channel): Discord channel to send the message to
             message (str): Message string
         """
-        embed = discord.Embed(title="Info", color=0x00a000)
+        embed = discord.Embed(title="Info", color=0x6db977)
         embed.description = message
         await channel.send(embed=embed)
         
