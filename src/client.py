@@ -1,10 +1,26 @@
 import asyncio
+import datetime
 import logging
 import pickle
 import shlex
 import time
 
 import discord
+from discord.ext import tasks
+
+
+@tasks.loop(minutes=1)
+async def task_worker(self):
+    past = []
+    for task in self.tasks:
+        if task["start"] >= datetime.datetime.now():
+            task["callback"](self)
+            if task["once"] == True:
+                past.append(task)
+            elif task["end"] >= datetime.datetime.now():
+                past.append(task)
+    for task in past:
+        del self.tasks[task]
 
 
 class HSBot(discord.Client):
@@ -19,7 +35,24 @@ class HSBot(discord.Client):
         self.active_panel = {}
         self.commands = {}
         self.reactions = {}
+        self.tasks = []
         self.description = f"{self.prefix}hello"
+        
+    def schedule(self, start, end, callback, once=False):
+        """Schedule a task
+
+        Args:
+            start (datetime.datetime): Task start
+            end (datetime.datetime): Task end
+            callback (function): Callback function
+            once (bool, optional): True if task should only run once. Defaults to False.
+        """
+        self.tasks.append({
+            "start": start,
+            "end": end,
+            "callback": callback,
+            "once": once
+        })
         
     def save(self, file):
         """Save client info to a file"""
@@ -118,6 +151,7 @@ class HSBot(discord.Client):
     async def on_ready(self):
         """Event triggered when the bot becomes online"""
         logging.info(f"{self.user} is online")
+        task_worker.start(self)
         await self.change_presence(status=discord.Status.online, activity=discord.Game(self.description))
     
     async def on_message(self, message):
