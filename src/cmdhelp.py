@@ -2,12 +2,14 @@ import os
 
 from jsonembed import json_to_embed
 from scrollable import Scrollable
+from utils import basedir
 
 
 def get_help_embed(page):
     PAGES = 1
     if page > 0 and page <= PAGES:
-        with open(os.path.join("rsrc", "help", f"page{page}.json"), "r") as f:
+        path = os.path.join(basedir(__file__), "rsrc", "help", f"page{page}.json")
+        with open(path, "r") as f:
             return json_to_embed(f.read())
     return None
 
