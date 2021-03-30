@@ -34,7 +34,7 @@ class Scrollable:
         
 
 async def reaction_scrollable(self, reaction, user, panel):
-    if reaction.emoji == "➡":
+    if reaction.emoji == "➡️":
         await reaction.remove(user)
         new_embed = panel["info"]["scrollable"].next_page()
         content = reaction.message.content

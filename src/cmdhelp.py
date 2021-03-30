@@ -19,3 +19,5 @@ async def command_help(self, message, args):
     self.add_active_panel(msg, "all", {"deletable", "scrollable"}, info={
         "scrollable": Scrollable(1, 1, get_help_embed)
     })
+    await msg.add_reaction("⬅")
+    await msg.add_reaction("➡")
