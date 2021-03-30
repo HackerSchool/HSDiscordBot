@@ -14,14 +14,15 @@ class Scrollable:
             self.on_page_change = on_page_change
         self.auto_footer = auto_footer
         
-    def page_change(self):
+    @staticmethod
+    def page_change(instance):
         return discord.Embed()
 
     def next_page(self):
         self.page += 1
         if self.page > self.pages:
             self.page = 1
-        e = self.on_page_change()
+        e = self.on_page_change(self)
         if self.auto_footer:
             e.set_footer(f"Page {self.page}/{self.pages}")
         return e
@@ -30,7 +31,7 @@ class Scrollable:
         self.page -= 1
         if self.page == 0:
             self.page = self.pages
-        e = self.on_page_change()
+        e = self.on_page_change(self)
         if self.auto_footer:
             e.set_footer(f"Page {self.page}/{self.pages}")
         return e

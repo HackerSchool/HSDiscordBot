@@ -5,10 +5,10 @@ from scrollable import LEFT, RIGHT, Scrollable
 from utils import DELETE, basedir
 
 
-def get_help_embed(page):
+def get_help_embed(self):
     PAGES = 1
-    if page > 0 and page <= PAGES:
-        path = os.path.join(basedir(__file__), "rsrc", "help", f"page{page}.json")
+    if self.page > 0 and self.page <= PAGES:
+        path = os.path.join(basedir(__file__), "rsrc", "help", f"page{self.page}.json")
         with open(path, "r") as f:
             return json_to_embed(f.read())
     return None
