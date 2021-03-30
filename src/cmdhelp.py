@@ -2,7 +2,7 @@ import os
 
 from jsonembed import json_to_embed
 from scrollable import LEFT, RIGHT, Scrollable
-from utils import basedir
+from utils import DELETE, basedir
 
 
 def get_help_embed(page):
@@ -19,5 +19,6 @@ async def command_help(self, message, args):
     self.add_active_panel(msg, "all", {"deletable", "scrollable"}, info={
         "scrollable": Scrollable(1, 1, get_help_embed)
     })
+    await msg.add_reaction(DELETE)
     await msg.add_reaction(LEFT)
     await msg.add_reaction(RIGHT)
