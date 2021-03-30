@@ -1,6 +1,6 @@
 {
     "title": "Help",
-    "colour": 7190903,
+    "color": 7190903,
 
     "fields": [
         {
@@ -11,9 +11,5 @@
             "name": "Example 2",
             "value": "Value 2"
         }
-    ],
-
-    "footer": {
-        "text": "Page 1/1"
-    }
+    ]
 }
