@@ -2,6 +2,7 @@ import logging
 
 import client
 import utils
+import scrollable
 
 
 async def command_hello(self, message, args):
@@ -15,6 +16,7 @@ def setup(client):
     
     client.add_reaction("deletable", utils.reaction_deletable)
     client.add_reaction("yesno", utils.reaction_yesno)
+    client.add_reaction("scrollable", scrollable.reaction_scrollable)
     
 
 if __name__ == "__main__":
