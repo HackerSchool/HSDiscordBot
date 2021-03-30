@@ -93,6 +93,7 @@ class HSBot(discord.Client):
             message (discord.Message): Message object (to be the active panel)
             user (discord.User | str): User
             types (set): types of panel
+            info (dict, Optional): useful panel info
         """
         if message.guild.id not in self.active_panel:
             self.active_panel[message.guild.id] = {}

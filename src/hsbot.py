@@ -5,10 +5,11 @@ import utils
 
 
 async def command_hello(self, message, args):
+    """Dummy command"""
     await self.send_info(message.channel, "Hello!")
-    
 
 def setup(client):   
+    """This function is responsible for registering all commands and reaction handlers with the client"""
     client.add_command("hello", command_hello)
     client.add_command("deletable", utils.command_deletable)
     
