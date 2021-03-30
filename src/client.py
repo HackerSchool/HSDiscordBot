@@ -27,7 +27,7 @@ async def task_worker(self):
 
 class HSBot(discord.Client):
     """HS bot client class"""
-    def __init__(self, prefix):
+    def __init__(self, prefix, sprint_path="."):
         intents = discord.Intents.default()
         intents.members = True
         super().__init__(intents=intents)
@@ -39,6 +39,7 @@ class HSBot(discord.Client):
         self.reactions = {}
         self.tasks = []
         self.description = f"{self.prefix}hello"
+        self.sprint_path = sprint_path
         
     def schedule(self, start, end, callback, once=False):
         """Schedule a task
