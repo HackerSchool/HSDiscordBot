@@ -1,3 +1,9 @@
+import os
+
+
+def basedir(f):
+    return os.path.abspath(os.path.join(f, os.pardir))    
+
 async def command_deletable(self, message, args):
     """Dummy command"""
     sent = await self.send_info(message.channel, "This message can be deleted")
