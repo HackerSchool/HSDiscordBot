@@ -1,8 +1,9 @@
 import logging
 
 import client
-import utils
+import cmdhelp
 import scrollable
+import utils
 
 
 async def command_hello(self, message, args):
@@ -13,6 +14,7 @@ def setup(client):
     """This function is responsible for registering all commands and reaction handlers with the client"""
     client.add_command("hello", command_hello)
     client.add_command("deletable", utils.command_deletable)
+    client.add_command("help", cmdhelp.command_help)
     
     client.add_reaction("deletable", utils.reaction_deletable)
     client.add_reaction("yesno", utils.reaction_yesno)
