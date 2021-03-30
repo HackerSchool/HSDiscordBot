@@ -25,8 +25,12 @@ def on_accept(attachment):
         result = await download_file(attachment.url, name)
         
         content = reaction.message.content
-        embed = discord.Embed(title="Success!", color=0x6db977)
-        embed.description = "Downloaded sprint report"
+        if result:
+            embed = discord.Embed(title="Success!", color=0x6db977)
+            embed.description = "Downloaded sprint report"
+        else:
+            embed = discord.Embed(title="Fail!", color=0xff0000)
+            embed.description = "Download failed"
         await reaction.message.edit(content=content, embed=embed)
         await reaction.message.clear_reactions()
     return on_accept_wrapper
