@@ -8,6 +8,8 @@ import time
 import discord
 from discord.ext import tasks
 
+import sprint
+
 
 @tasks.loop(minutes=1)
 async def task_worker(self):
@@ -164,6 +166,9 @@ class HSBot(discord.Client):
             command, *args = shlex.split(msg_content)
             if command in self.commands:
                 await self.commands[command](self, message, args)
+                
+        elif len(message.attachments) != 0:
+            await sprint.process_attachments(self, message)
                 
     async def on_reaction_add(self, reaction, user):
         """Event triggered when a user reacts to a message"""

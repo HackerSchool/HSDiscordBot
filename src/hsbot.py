@@ -13,6 +13,7 @@ def setup(client):
     client.add_command("deletable", utils.command_deletable)
     
     client.add_reaction("deletable", utils.reaction_deletable)
+    client.add_reaction("yesno", utils.reaction_yesno)
     
 
 if __name__ == "__main__":
