@@ -15,6 +15,7 @@ def get_room_embed(self):
             return json_to_embed(f.read())
     return None
 
+
 async def create_room(self, reaction, user, roomID):
     server = reaction.message.guild
     usr = str(user)
@@ -22,9 +23,11 @@ async def create_room(self, reaction, user, roomID):
     name = "room " + str(roomID) + " by hsbot"
     await server.create_voice_channel(name, reason=reason)
 
+
 async def on_choose(self, reaction, user, panel, index):
     await self.send_info(reaction.message.channel, f"Room {index} selected")
     await create_room(self, reaction, user, index)
+
 
 async def command_room(self, message, args):
     s = Scrollable(1, 1, get_room_embed)

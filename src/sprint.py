@@ -29,7 +29,7 @@ async def download_file(url, path):
     return True
 
 
-def sendFiles(file_name, folder_name):
+def send_files(file_name, folder_name):
     """
     Sends file to google drive folder
     Returns: 
