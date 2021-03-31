@@ -6,13 +6,8 @@ from utils import DELETE, basedir
 
 NUMBERS = ('0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣')
 
-def get_room_embed(self=None, init=False):
+def get_room_embed(self):
     PAGES = 1
-    if init:
-        path = os.path.join(basedir(__file__), "rsrc", "room", f"page1.json")
-        with open(path, "r") as f:
-            return json_to_embed(f.read())
-
     if self.page > 0 and self.page <= PAGES:
         path = os.path.join(basedir(__file__), "rsrc", "room", f"page{self.page}.json")
         with open(path, "r") as f:
@@ -20,10 +15,11 @@ def get_room_embed(self=None, init=False):
     return None
 
 async def command_room(self, message, args):
-    embed = get_room_embed(init = True)
+    s = Scrollable(1, 1, get_room_embed)
+    embed = s.update_page()
     msg = await message.channel.send(embed=embed)
     self.add_active_panel(msg, "all", {"deletable", "scrollable", "numbers"}, info={
-        "scrollable": Scrollable(1, 1, get_room_embed)
+        "scrollable": s
     })
     await msg.add_reaction(DELETE)
     await msg.add_reaction(LEFT)
