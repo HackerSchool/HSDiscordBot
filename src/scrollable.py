@@ -41,17 +41,25 @@ class Scrollable:
         if self.auto_footer:
             e.set_footer(text=f"Page {self.page}/{self.pages}")
         return e
+    
+    
+class SmartScrollable(Scrollable):
+    def __init__(self, message, pages, page=1, on_page_change=None, auto_footer=True):
+        super().__init__(pages, page, on_page_change, auto_footer)
+        self.message = message
         
 
 async def reaction_scrollable(self, reaction, user, panel):
     if reaction.emoji == RIGHT:
-        await reaction.remove(user)
+        if reaction.message.guild is not None:
+            await reaction.remove(user)
         new_embed = panel["info"]["scrollable"].next_page()
         content = reaction.message.content
         await reaction.message.edit(content=content, embed=new_embed)
         
     if reaction.emoji == LEFT:
-        await reaction.remove(user)
+        if reaction.message.guild is not None:
+            await reaction.remove(user)
         content = reaction.message.content
         new_embed = panel["info"]["scrollable"].previous_page()
         await reaction.message.edit(content=content, embed=new_embed)

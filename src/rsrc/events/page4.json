@@ -1,0 +1,12 @@
+{
+    "title": "Event Creator",
+    "description": "Examples:\n> Friday at 9pm\n> Tomorrow at 18:00\n> Now\n> In 1 hour\n> DD-MM-YYYY 7:00 PM",
+    "color": 7190903,
+    "fields": [
+        {
+            "name": "Event start",
+            "value": "",
+            "inline": false
+        }
+    ]
+}
