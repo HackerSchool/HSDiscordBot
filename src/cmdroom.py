@@ -27,7 +27,7 @@ async def command_room(self, message, args):
     for i in range(1, 5):
         await msg.add_reaction(NUMBERS[i])
 
-async def createRoom(self, reaction, user, roomID):
+async def create_room(self, reaction, user, roomID):
     server = reaction.message.guild
     usr = str(user)
     reason = "Selected by" + usr
