@@ -5,24 +5,20 @@ from scrollable import LEFT, RIGHT, Scrollable
 from utils import DELETE, basedir
 
 
-def get_help_embed(self=None, init=False):
+def get_help_embed(self):
     PAGES = 1
-    if init:
-        path = os.path.join(basedir(__file__), "rsrc", "help", f"page1.json")
+    if self.page > 0 and self.page <= PAGES:
+        path = os.path.join(basedir(__file__), "rsrc", "help", f"page{self.page}.json")
         with open(path, "r") as f:
             return json_to_embed(f.read())
-    else:
-        if self.page > 0 and self.page <= PAGES:
-            path = os.path.join(basedir(__file__), "rsrc", "help", f"page{self.page}.json")
-            with open(path, "r") as f:
-                return json_to_embed(f.read())
     return None
 
 async def command_help(self, message, args):
-    embed = get_help_embed(init=True)
+    s = Scrollable(1, 1, get_help_embed)
+    embed = s.on_page_change(s)
     msg = await message.channel.send(embed=embed)
     self.add_active_panel(msg, "all", {"deletable", "scrollable"}, info={
-        "scrollable": Scrollable(1, 1, get_help_embed)
+        "scrollable": s
     })
     await msg.add_reaction(DELETE)
     await msg.add_reaction(LEFT)
