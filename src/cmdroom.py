@@ -24,18 +24,15 @@ async def command_room(self, message, args):
     await msg.add_reaction(DELETE)
     await msg.add_reaction(LEFT)
     await msg.add_reaction(RIGHT)
-    await msg.add_reaction('1️⃣')
-    await msg.add_reaction('2️⃣')
-    #await msg.add_reaction('3️⃣')
-    #await msg.add_reaction('4️⃣')
-    #await msg.add_reaction('5️⃣')
+    for i in range(1, 5):
+        await msg.add_reaction(NUMBERS[i])
 
 async def createRoom(self, reaction, user, roomID):
     server = reaction.message.guild
     usr = str(user)
     reason = "Selected by" + usr
     name = "room " + str(roomID) + " by hsbot"
-    await server.create_voice_channel(name, reason=reason)
+    await server.create_voice_channel(name, reason=reason, category="By hsbot")
 
 async def reaction_numbers(self, reaction, user, panel):
     """Triggered when a reaction-numbered message is reacted on"""
