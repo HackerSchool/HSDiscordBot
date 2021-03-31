@@ -52,8 +52,8 @@ def on_accept(attachment):
         await reaction.message.clear_reactions()
     return on_accept_callback
 
-async def process_attachments(self, message):
-    """Called when a file is sent to a channel"""
+async def handler_sprint(self, message):
+    """Used when a file is sent to a channel"""
     for attachment in message.attachments:
         if "sprint" in attachment.filename.lower():
             msg = await self.send_info(message.channel, f"Should I capture '{attachment.filename}' as a sprint report?")

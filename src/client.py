@@ -8,8 +8,6 @@ import time
 import discord
 from discord.ext import tasks
 
-import sprint
-
 
 @tasks.loop(minutes=1)
 async def task_worker(self):
@@ -37,6 +35,8 @@ class HSBot(discord.Client):
         self.active_panel = {}
         self.commands = {}
         self.reactions = {}
+        self.custom_msg_handlers = {}
+        self.data = {}
         self.tasks = []
         self.description = f"{self.prefix}hello"
         self.sprint_path = sprint_path
@@ -66,6 +66,28 @@ class HSBot(discord.Client):
         """Load client info from a file"""
         with open(file, "rb") as f:
             self.dm, self.pcs, self.npcs, self.items = pickle.load(f)
+            
+    def get_data(self, key):
+        """Get custom data from a server / DM
+
+        Args:
+            key (int): Guild ID / Channel ID
+
+        Returns:
+            dict: Custom data
+        """
+        if key not in self.data:
+            self.data[key] = {}
+        return self.data[key]
+    
+    def set_data(self, key, value):
+        """Set custom data for a server / DM
+
+        Args:
+            key (int): Guild ID / Channel ID
+            value (dict): Custom data
+        """
+        self.data[key] = value
         
     def get_active_panels(self, key, user):
         """Get the active panels for a specific user
@@ -123,6 +145,15 @@ class HSBot(discord.Client):
         """
         self.commands[name] = {"callback": func, "text": text, "dm": dm}
         
+    def add_custom_message_handler(self, name, func, text=True, dm=False):
+        """Add a custom message handler to the bot
+
+        Args:
+            name (str): Handler name
+            func (function): Python corroutine
+        """
+        self.custom_msg_handlers[name] = {"callback": func, "text": text, "dm": dm}
+        
     def add_reaction(self, name, func, text=True, dm=True):
         """Add a reaction handler to the bot
 
@@ -175,8 +206,15 @@ class HSBot(discord.Client):
                              self.commands[command]["dm"])))):
                     await self.commands[command]["callback"](self, message, args)
                 
-        elif len(message.attachments) != 0:
-            await sprint.process_attachments(self, message)
+        else:
+            for handler in self.custom_msg_handlers:
+                if any((all((isinstance(message.channel, discord.channel.TextChannel),
+                             self.custom_msg_handlers[handler]["text"])),
+                        all((isinstance(message.channel, discord.channel.DMChannel),
+                             self.custom_msg_handlers[handler]["dm"])))):
+                    await self.custom_msg_handlers[handler]["callback"](self, message)
+        #elif len(message.attachments) != 0:
+        #    await sprint.process_attachments(self, message)
                 
     async def on_reaction_add(self, reaction, user):
         """Event triggered when a user reacts to a message"""

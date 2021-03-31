@@ -6,6 +6,7 @@ import cmdevent
 import cmdhelp
 import cmdroom
 import scrollable
+import sprint
 import utils
 
 
@@ -24,6 +25,9 @@ def setup(client):
     client.add_reaction("deletable", utils.reaction_deletable)
     client.add_reaction("yesno", utils.reaction_yesno)
     client.add_reaction("scrollable", scrollable.reaction_scrollable)
+    
+    client.add_custom_message_handler("sprint", sprint.handler_sprint)
+    client.add_custom_message_handler("event", cmdevent.handler_event, text=False, dm=True)
     
 
 if __name__ == "__main__":
