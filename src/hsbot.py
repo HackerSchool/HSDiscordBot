@@ -1,10 +1,11 @@
 import logging
+import sys
 
 import client
 import cmdhelp
+import cmdroom
 import scrollable
 import utils
-import cmdroom
 
 
 async def command_hello(self, message, args):
@@ -24,10 +25,14 @@ def setup(client):
     
 
 if __name__ == "__main__":
+    logging.basicConfig(format="%(asctime)s %(levelname)s - %(message)s", datefmt="[%d/%b/%Y %H:%M:%S]", level=logging.INFO)
     with open("token", "r") as file:
         token = file.readline()
     
-    logging.basicConfig(format="%(asctime)s %(levelname)s - %(message)s", datefmt="[%d/%b/%Y %H:%M:%S]", level=logging.INFO)
-    hsbot = client.HSBot("+")
+    prefix = sys.argv[1] if len(sys.argv) > 1 else "+"
+    if prefix != "+":
+        logging.info(f"Using custom prefix '{prefix}'")
+    
+    hsbot = client.HSBot(prefix)
     setup(hsbot)
     hsbot.run(token)
