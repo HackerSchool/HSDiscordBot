@@ -16,7 +16,7 @@ def get_room_embed(self):
 
 async def command_room(self, message, args):
     s = Scrollable(1, 1, get_room_embed)
-    embed = s.on_page_change(s)
+    embed = s.update_page()
     msg = await message.channel.send(embed=embed)
     self.add_active_panel(msg, "all", {"deletable", "scrollable"}, info={
         "scrollable": s

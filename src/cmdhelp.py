@@ -15,7 +15,7 @@ def get_help_embed(self):
 
 async def command_help(self, message, args):
     s = Scrollable(1, 1, get_help_embed)
-    embed = s.on_page_change(s)
+    embed = s.update_page()
     msg = await message.channel.send(embed=embed)
     self.add_active_panel(msg, "all", {"deletable", "scrollable"}, info={
         "scrollable": s
