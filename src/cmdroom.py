@@ -4,7 +4,7 @@ from jsonembed import json_to_embed
 from scrollable import LEFT, RIGHT, Scrollable
 from utils import DELETE, basedir
 
-NUMBERS = {'0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣'}
+NUMBERS = ('0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟')
 
 def get_room_embed(self):
     PAGES = 1
@@ -18,7 +18,7 @@ async def command_room(self, message, args):
     s = Scrollable(1, 1, get_room_embed)
     embed = s.update_page()
     msg = await message.channel.send(embed=embed)
-    self.add_active_panel(msg, "all", {"deletable", "scrollable"}, info={
+    self.add_active_panel(msg, "all", {"deletable", "scrollable", "numbers"}, info={
         "scrollable": s
     })
     await msg.add_reaction(DELETE)
@@ -30,14 +30,17 @@ async def command_room(self, message, args):
     #await msg.add_reaction('4️⃣')
     #await msg.add_reaction('5️⃣')
 
-async def reaction_number(self, reaction, user, panel):
-    """Triggered when a yes-no message is reacted on"""
-    
-    if reaction.emoji == NUMBERS[0]:
-        await message.channel.send("Number 0")
+async def createRoom(self, reaction, user, roomID):
+    server = reaction.message.guild
+    usr = str(user)
+    reason = "Selected by" + usr
+    name = "room " + str(roomID) + " by hsbot"
+    await server.create_voice_channel(name, reason=reason)
 
-    if reaction.emoji == NUMBERS[1]:
-        await message.channel.send("Number 1")
-
-    if reaction.emoji == NUMBERS[2]:
-        await message.channel.send("Number 2")
+async def reaction_numbers(self, reaction, user, panel):
+    """Triggered when a reaction-numbered message is reacted on"""
+    for i in range(0, 11):
+        if reaction.emoji == NUMBERS[i]:
+            await reaction.remove(user)
+            await self.send_info(reaction.message.channel, "Room "+str(i)+" selected")
+            await createRoom(self, reaction, user, i)
