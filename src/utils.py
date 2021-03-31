@@ -26,5 +26,6 @@ async def reaction_yesno(self, reaction, user, panel):
         await reaction.message.delete()
     
     if reaction.emoji == CONFIRM:
-        await reaction.remove(user)
+        if reaction.message.guild is not None:
+            await reaction.remove(user)
         await panel["info"]["on_accept"](self, reaction, user, panel)
