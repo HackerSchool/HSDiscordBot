@@ -1,0 +1,15 @@
+{
+    "title": "Help",
+    "color": 7190903,
+
+    "fields": [
+        {
+            "name": "Sample Text",
+            "value": "Value Text"
+        },
+        {
+            "name": "Example 2",
+            "value": "Value 2"
+        }
+    ]
+}
