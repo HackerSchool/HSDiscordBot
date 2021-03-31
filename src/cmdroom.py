@@ -4,7 +4,7 @@ from jsonembed import json_to_embed
 from scrollable import LEFT, RIGHT, Scrollable
 from utils import DELETE, basedir
 
-NUMBERS = {'0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣'}
+NUMBERS = ('0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣')
 
 def get_room_embed(self=None, init=False):
     PAGES = 1
@@ -22,7 +22,7 @@ def get_room_embed(self=None, init=False):
 async def command_room(self, message, args):
     embed = get_room_embed(init = True)
     msg = await message.channel.send(embed=embed)
-    self.add_active_panel(msg, "all", {"deletable", "scrollable"}, info={
+    self.add_active_panel(msg, "all", {"deletable", "scrollable", "numbers"}, info={
         "scrollable": Scrollable(1, 1, get_room_embed)
     })
     await msg.add_reaction(DELETE)
@@ -34,14 +34,17 @@ async def command_room(self, message, args):
     #await msg.add_reaction('4️⃣')
     #await msg.add_reaction('5️⃣')
 
-async def reaction_number(self, reaction, user, panel):
+async def reaction_numbers(self, reaction, user, panel):
     """Triggered when a yes-no message is reacted on"""
     
     if reaction.emoji == NUMBERS[0]:
-        await message.channel.send("Number 0")
+        await reaction.remove(user)
+        await self.send_info(reaction.message.channel, "Room 0 selected")
 
     if reaction.emoji == NUMBERS[1]:
-        await message.channel.send("Number 1")
+        await reaction.remove(user)
+        await self.send_info(reaction.message.channel, "Room 1 selected")
 
     if reaction.emoji == NUMBERS[2]:
-        await message.channel.send("Number 2")
+        await reaction.remove(user)
+        await self.send_info(reaction.message.channel, "Room 2 selected")

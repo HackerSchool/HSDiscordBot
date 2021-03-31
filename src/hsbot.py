@@ -21,13 +21,13 @@ def setup(client):
     client.add_reaction("deletable", utils.reaction_deletable)
     client.add_reaction("yesno", utils.reaction_yesno)
     client.add_reaction("scrollable", scrollable.reaction_scrollable)
-    
+    client.add_reaction("numbers", cmdroom.reaction_numbers)
 
 if __name__ == "__main__":
     with open("token", "r") as file:
         token = file.readline()
     
     logging.basicConfig(format="%(asctime)s %(levelname)s - %(message)s", datefmt="[%d/%b/%Y %H:%M:%S]", level=logging.INFO)
-    hsbot = client.HSBot("+")
+    hsbot = client.HSBot("$")
     setup(hsbot)
     hsbot.run(token)
