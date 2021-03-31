@@ -16,15 +16,20 @@ async def command_deletable(self, message, args):
 async def reaction_deletable(self, reaction, user, panel):
     """Triggered when a deletable message is reacted on"""
     if reaction.emoji == DELETE:
+        if "on_delete" in panel["info"]:
+            await panel["on_delete"](self, reaction, user, panel)
         self.remove_active_panel(reaction.message, panel["user"])
         await reaction.message.delete()
         
 async def reaction_yesno(self, reaction, user, panel):
     """Triggered when a yes-no message is reacted on"""
     if reaction.emoji == DELETE:
+        if "on_delete" in panel["info"]:
+            await panel["info"]["on_delete"](self, reaction, user, panel)
         self.remove_active_panel(reaction.message, panel["user"])
         await reaction.message.delete()
     
     if reaction.emoji == CONFIRM:
-        await reaction.remove(user)
+        if reaction.message.guild is not None:
+            await reaction.remove(user)
         await panel["info"]["on_accept"](self, reaction, user, panel)

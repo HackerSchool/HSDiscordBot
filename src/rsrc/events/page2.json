@@ -1,0 +1,11 @@
+{
+    "title": "Event Creator",
+    "color": 7190903,
+    "fields": [
+        {
+            "name": "Title",
+            "value": "",
+            "inline": false
+        }
+    ]
+}
