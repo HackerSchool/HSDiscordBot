@@ -1,0 +1,29 @@
+{
+    "title": "Room Creator",
+    "description": "Facilitates creation of voice chat rooms - should allow for different permission settings",
+    "color": 7190903,
+    "thumbnail": "https://static.blog-lideranca.pt/wp-content/uploads/2019/05/28092207/Te%CC%81cnicas-de-brainstorming-para-desbloquear-o-processo-criativo-conteudo.png",
+    "author": {
+    "name": "HSBot"
+    },
+    "fields": [
+    {
+    "name": "RoomDescription",
+    "value": "PossibleCmdSettings",
+    "inline": true
+    },
+    {
+    "name": "PresetRoom1",
+    "value": "PresetSettings1",
+    "inline": true
+    },
+    {
+    "name": "PresetRoom2",
+    "value": "PresetSettings2",
+    "inline": true
+    }
+    ],
+    "footer": {
+    "name": "Footer"
+    }
+    }

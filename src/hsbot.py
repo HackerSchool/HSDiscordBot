@@ -4,6 +4,7 @@ import client
 import cmdhelp
 import scrollable
 import utils
+import cmdroom
 
 
 async def command_hello(self, message, args):
@@ -15,7 +16,8 @@ def setup(client):
     client.add_command("hello", command_hello)
     client.add_command("deletable", utils.command_deletable)
     client.add_command("help", cmdhelp.command_help)
-    
+    client.add_command("room", cmdroom.command_room)
+
     client.add_reaction("deletable", utils.reaction_deletable)
     client.add_reaction("yesno", utils.reaction_yesno)
     client.add_reaction("scrollable", scrollable.reaction_scrollable)
