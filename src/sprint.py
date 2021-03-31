@@ -83,8 +83,9 @@ def on_accept(attachment):
             if sendFiles(name, "Test"):
                 embed = discord.Embed(title="Success!", color=0x6db977)
                 embed.description = "Downloaded sprint report"
-            embed = discord.Embed(title="Fail!", color=0xff0000)
-            embed.description = "Upload to storage has failed"
+            else:
+                embed = discord.Embed(title="Fail!", color=0xff0000)
+                embed.description = "Upload to storage has failed"
             os.remove(name)
         else:
             embed = discord.Embed(title="Fail!", color=0xff0000)

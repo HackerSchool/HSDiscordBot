@@ -32,7 +32,7 @@ async def createRoom(self, reaction, user, roomID):
     usr = str(user)
     reason = "Selected by" + usr
     name = "room " + str(roomID) + " by hsbot"
-    await server.create_voice_channel(name, reason=reason, category="By hsbot")
+    await server.create_voice_channel(name, reason=reason)
 
 async def reaction_numbers(self, reaction, user, panel):
     """Triggered when a reaction-numbered message is reacted on"""
