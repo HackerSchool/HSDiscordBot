@@ -45,6 +45,7 @@ async def refuse_new_project(self, reaction, user, panel):
     msgreff_embed.title = "New project creation aborted!"
     await channel.send(embed=msgreff_embed)
 
+
 async def command_room(self, message, args):
     if len(args) >= 1:
         if args[0] == "-p":
@@ -65,7 +66,8 @@ async def command_room(self, message, args):
                 msgerr_embed.title = "Improper command usage"
                 msgerr_embed.description = f"*-p* command requires project_name and participants\n{self.prefix}room for more information"
                 msgerr = await message.channel.send(embed=msgerr_embed)
-                self.add_active_panel(msgerr, message.author, {"deletable"}, info={})
+                self.add_active_panel(msgerr, message.author, {
+                                      "deletable"}, info={})
                 await msgerr.add_reaction(DELETE)
         else:
             msgerr_embed = discord.Embed(color=0xfcba03)
