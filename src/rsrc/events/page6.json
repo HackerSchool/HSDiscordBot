@@ -1,10 +1,10 @@
 {
     "title": "Event Creator",
-    "description": "Examples:\n> Friday at 9pm\n> Tomorrow at 18:00\n> Now\n> DD-MM-YYYY 7:00 PM",
+    "description": "Examples:\n> admin\n> mod admin\n> \"long name\"",
     "color": 7190903,
     "fields": [
         {
-            "name": "Event start",
+            "name": "Role mentions",
             "value": "",
             "inline": false
         }
