@@ -138,8 +138,7 @@ class HSBot(discord.Client):
         """
         if remove_reactions:
             if message.guild is not None:
-                for reaction in message.reactions:
-                    await reaction.clear()
+                await message.clear_reactions()
             else:
                 for reaction in message.reactions:
                     if reaction.me:
