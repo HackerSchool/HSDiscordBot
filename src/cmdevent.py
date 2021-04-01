@@ -12,10 +12,12 @@ from utils import CONFIRM, DELETE, basedir
 
 class Event(SmartScrollable):
     PATTERN1 = re.compile(
-        "((?:mon|tues|wednes|thurs|fri|satur|sun)day) +at +(\d+(?:\:\d+)?) *(pm|am)?")
-    PATTERN2 = re.compile("(tomorrow|today) +at +(\d+(?:\:\d+)?) *(pm|am)?")
+        "((?:mon|tues|wednes|thurs|fri|satur|sun)day) +at +(\\d+(?:\\:\\d+)?) *(pm|am)?")
+    PATTERN2 = re.compile("(tomorrow|today) +at +(\\d+(?:\\:\\d+)?) *(pm|am)?")
     PATTERN3 = re.compile(
         "(\\d\\d?)[\\-\\/](\\d\\d?)[\\-\\/](\\d\\d\\d\\d) *(?:at)? *(\\d\\d?(?:\\:\\d\\d)?) *(am|pm)?")
+    PATTERN4 = re.compile(
+        "(?:(\\d+) *h(?:ours?)?)? *(?:and)? *(?:(\\d+) *min(?:utes?)?)?")
     WEEKDAYS = ("monday", "tuesday", "wednesday",
                 "thursday", "friday", "saturday", "sunday")
 
@@ -23,10 +25,10 @@ class Event(SmartScrollable):
         super().__init__(message, pages, page, on_page_change, auto_footer)
         self.current_channel = channel
         self.selected_channel = channel
-        self.start_time = None
-        self.duration = None
+        self.event_start = None
+        self.event_duration = None
         self.event_name = None
-        self.repeat = None
+        self.event_repeat = None
         self.event_description = None
         self.role_mentions = []
 
@@ -63,7 +65,13 @@ class Event(SmartScrollable):
         elif self.page == 4:
             date = self.parse_date(message.content)
             if date is not None and datetime.datetime.now() <= date:
-                self.start_time = date
+                self.event_start = date
+                await self.message.edit(embed=self.update_page())
+
+        elif self.page == 5:
+            duration = self.parse_duration(message.content)
+            if duration is not None:
+                self.event_duration = duration
                 await self.message.edit(embed=self.update_page())
 
     async def publish(self, client, reaction, user, panel):
@@ -79,6 +87,26 @@ class Event(SmartScrollable):
         if hours < 12 and half == "pm":
             hours += 12
         return hours, minutes
+
+    @staticmethod
+    def parse_duration(string):
+        string = string.strip().lower()
+        match = __class__.PATTERN4.match(string)
+        if match is not None:
+            groups = match.groups()
+            argc = len(tuple(filter(lambda i: i is not None, match.groups())))
+            if argc != 0:
+                hours, minutes = groups
+                if hours is None:
+                    hours = 0
+                else:
+                    hours = int(hours)
+                if minutes is None:
+                    minutes = 0
+                else:
+                    minutes = int(minutes)
+                return datetime.timedelta(hours=hours, minutes=minutes)
+        return None
 
     @staticmethod
     def parse_date(string):
@@ -151,7 +179,11 @@ def get_event_embed(self):
         base.set_field_at(0, name=base.fields[0].name, value=value)
 
     elif self.page == 4:
-        value = str(self.start_time)
+        value = str(self.event_start)
+        base.set_field_at(0, name=base.fields[0].name, value=value)
+
+    elif self.page == 5:
+        value = str(self.event_duration)
         base.set_field_at(0, name=base.fields[0].name, value=value)
 
     return base
@@ -165,7 +197,7 @@ async def command_event(self, message, args):
         msg = await channel.fetch_message(panels[panel]["id"])
         self.remove_active_panel(msg, panels[panel]["user"])
 
-    s = Event(message.channel, None, 4, 1, get_event_embed)
+    s = Event(message.channel, None, 5, 1, get_event_embed)
     msg = await channel.send(embed=s.update_page())
     s.message = msg
     self.add_active_panel(msg, message.author, {"scrollable", "yesno"}, info={
