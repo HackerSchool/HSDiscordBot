@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 import re
+import shlex
 
 import discord
 
@@ -30,14 +31,14 @@ class Event(SmartScrollable):
         self.event_name = None
         self.event_repeat = None
         self.event_description = None
-        self.role_mentions = []
+        self.role_mentions = ()
 
     async def on_delete(self, client, reaction, user, panel):
         del client.get_data(self.message.channel.id)["active_event"]
 
     async def on_message(self, message):
         if self.page == 1:
-            def verify(channel):
+            def verify_c(channel):
                 if not isinstance(channel, discord.channel.TextChannel):
                     return False
                 if message.content.isdigit():
@@ -47,7 +48,7 @@ class Event(SmartScrollable):
                     return True
 
             valid_channels = tuple(filter(
-                verify,
+                verify_c,
                 self.current_channel.guild.channels
             ))
             if len(valid_channels) == 1:
@@ -73,6 +74,23 @@ class Event(SmartScrollable):
             if duration is not None:
                 self.event_duration = duration
                 await self.message.edit(embed=self.update_page())
+                
+        elif self.page == 6:
+            roles = shlex.split(message.content)
+            def verify_r(r):
+                for role in roles:
+                    if role.isdigit() and int(role) == r.id:
+                        return True 
+                    if role.lower() in r.name.lower():
+                        return True
+                return False
+            valid_roles = tuple(filter(
+                verify_r,
+                self.current_channel.guild.roles
+            ))
+            self.role_mentions = valid_roles
+            await self.message.edit(embed=self.update_page())
+                
 
     async def publish(self, client, reaction, user, panel):
         await self.message.channel.send("Hurray!")
@@ -168,23 +186,19 @@ def get_event_embed(self):
         else:
             value += f"{self.selected_channel.mention}"
         value += "\n(type the channel name to change it)"
-        base.set_field_at(0, name=base.fields[0].name, value=value)
 
-    elif self.page == 2:
-        value = str(self.event_name)
-        base.set_field_at(0, name=base.fields[0].name, value=value)
+    elif self.page == 2: value = str(self.event_name)
+    elif self.page == 3: value = str(self.event_description)
+    elif self.page == 4: value = str(self.event_start)
+    elif self.page == 5: value = str(self.event_duration)
+    
+    elif self.page == 6: 
+        if len(self.role_mentions) != 0:
+            value = ", ".join(map(lambda r: r.name, self.role_mentions))
+        else: 
+            value = "None"
 
-    elif self.page == 3:
-        value = str(self.event_description)
-        base.set_field_at(0, name=base.fields[0].name, value=value)
-
-    elif self.page == 4:
-        value = str(self.event_start)
-        base.set_field_at(0, name=base.fields[0].name, value=value)
-
-    elif self.page == 5:
-        value = str(self.event_duration)
-        base.set_field_at(0, name=base.fields[0].name, value=value)
+    base.set_field_at(0, name=base.fields[0].name, value=value)
 
     return base
 
@@ -197,7 +211,7 @@ async def command_event(self, message, args):
         msg = await channel.fetch_message(panels[panel]["id"])
         self.remove_active_panel(msg, panels[panel]["user"])
 
-    s = Event(message.channel, None, 5, 1, get_event_embed)
+    s = Event(message.channel, None, 6, 1, get_event_embed)
     msg = await channel.send(embed=s.update_page())
     s.message = msg
     self.add_active_panel(msg, message.author, {"scrollable", "yesno"}, info={

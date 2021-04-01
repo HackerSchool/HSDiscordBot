@@ -1,0 +1,12 @@
+{
+    "title": "Event Creator",
+    "description": "Examples:\n> admin\n> mod admin\n> \"long name\"",
+    "color": 7190903,
+    "fields": [
+        {
+            "name": "Role mentions",
+            "value": "",
+            "inline": false
+        }
+    ]
+}
