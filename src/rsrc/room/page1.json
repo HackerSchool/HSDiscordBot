@@ -1,6 +1,6 @@
 {
     "title": "Room Creator",
-    "description": "Facilitates creation of voice chat rooms - should allow for different permission settings",
+    "description": "Facilitates creation of voice chat rooms.",
     "color": 7190903,
     "thumbnail": "https://static.blog-lideranca.pt/wp-content/uploads/2019/05/28092207/Te%CC%81cnicas-de-brainstorming-para-desbloquear-o-processo-criativo-conteudo.png",
     "author": {
@@ -8,8 +8,8 @@
     },
     "fields": [
         {
-            "name": "RoomDescription",
-            "value": "PossibleCmdSettings",
+            "name": "Arguments (optional): -p project_name participant1 participant2 participant3...",
+            "value": "Creates *project_name* as a role, and the respective text and voice channels. Only \"power\" roles and *project_name* can view and interact with these rooms",
             "inline": true
         },
         {
