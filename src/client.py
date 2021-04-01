@@ -126,13 +126,21 @@ class HSBot(discord.Client):
             self.active_panel[key][user] = {}
         self.active_panel[key][user][message.id] = {"id": message.id, "types": types, "info": info, "user": user}
             
-    def remove_active_panel(self, message, user):
+    async def remove_active_panel(self, message, user, remove_reactions=True):
         """Remove an active panel from a specific user
 
         Args:
             message (discord.Message): Message object (to be the active panel)
             user (discord.User | str): User
         """
+        if remove_reactions:
+            if message.guild is not None:
+                for reaction in message.reactions:
+                    await reaction.clear()
+            else:
+                for reaction in message.reactions:
+                    if reaction.me:
+                        await reaction.clear()
         key = message.channel.id if message.guild is None else message.guild.id
         del self.active_panel[key][user][message.id]
     

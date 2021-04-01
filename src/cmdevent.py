@@ -143,7 +143,7 @@ async def command_event(self, message, args):
     panels = self.get_active_panels(channel.id, message.author.id)
     for panel in panels:
         msg = await channel.fetch_message(panels[panel]["id"])
-        self.remove_active_panel(msg, panels[panel]["user"])
+        await self.remove_active_panel(msg, panels[panel]["user"])
         
     s = Event(message.channel, None, 4, 1, get_event_embed)
     msg = await channel.send(embed=s.update_page())

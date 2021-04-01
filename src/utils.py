@@ -20,7 +20,7 @@ async def delete_message(self, reaction, user, panel):
     if panel["info"] is not None:
         if "on_delete" in panel["info"]:
             await panel["info"]["on_delete"](self, reaction, user, panel)
-    self.remove_active_panel(reaction.message, panel["user"])
+    await self.remove_active_panel(reaction.message, panel["user"])
     await reaction.message.delete()
 
 
