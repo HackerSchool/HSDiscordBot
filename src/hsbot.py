@@ -5,7 +5,7 @@ import choosable
 import client
 import cmdevent
 import cmdhelp
-import cmdroom
+import cmdproject
 import scrollable
 import sprint
 import utils
@@ -21,8 +21,8 @@ def setup(client):
     client.add_command("hello", command_hello)
     client.add_command("deletable", utils.command_deletable)
     client.add_command("help", cmdhelp.command_help)
-    client.add_command("room", cmdroom.command_room)
     client.add_command("event", cmdevent.command_event)
+    client.add_command("project", cmdproject.command_project)
 
     client.add_reaction("deletable", utils.reaction_deletable)
     client.add_reaction("yesno", utils.reaction_yesno)
