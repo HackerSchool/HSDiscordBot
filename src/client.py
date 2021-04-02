@@ -142,7 +142,7 @@ class HSBot(discord.Client):
             else:
                 for reaction in message.reactions:
                     if reaction.me:
-                        await reaction.clear()
+                        await reaction.remove(self.user)
         key = message.channel.id if message.guild is None else message.guild.id
         del self.active_panel[key][user][message.id]
 
