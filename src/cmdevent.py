@@ -131,7 +131,7 @@ class Event(SmartScrollable):
         string = string.strip().lower()
         if string == "now":
             n = datetime.datetime.now()
-            return n.replace(hour=hours, minute=minutes, second=0, microsecond=0)
+            return n.replace(second=0, microsecond=0)
         else:
             match = __class__.PATTERN1.match(string)
             if match is not None:
