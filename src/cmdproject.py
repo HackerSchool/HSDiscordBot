@@ -52,7 +52,7 @@ def get_voice_channel_named(category, name):
 
 def get_text_channel_named(category, name):
     for channel in category.text_channels:
-        if channel.name == name:
+        if channel.name == name.lower():
             return channel
     return None
 
