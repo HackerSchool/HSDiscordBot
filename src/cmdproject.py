@@ -308,9 +308,17 @@ async def command_project(self, message, args):
                                                f"List of possible arguments:\n"
                                    )
         help_embed.add_field(
-            name="new", value="Creates new project.\n**Options**: project_name participant1 [participant2] ...\nCreates", inline=False)
+            name="new", value="**Description**: Creates new project.\n"\
+                                "• Creates one role, one voice channel and one text channel named \"project_name\"\n" \
+                                "• Assigns role to participants\n"\
+                                "• Assigns channel managing permissions to management roles, and viewing permission only to participants\n"\
+                                f"• Channels created under **{PROJECTS_CATEGORY}** category\n" \
+                                "**Options**: project_name participant1 [participant2] ...\n", inline=False)
         help_embed.add_field(
-            name="delete", value="Deletes existent project.\n**Options**: project1 [project2] ...\nDeletes role and text/voice channels for each project if they exist", inline=False)
+            name="delete", value="**Description**: Deletes existent project or projects.\n"\
+                                "• Deletes role and text/voice channels for each project if they exist\n"\
+                                f"• Only affects text/voice channels under **{PROJECTS_CATEGORY}** category\n"\
+                                "**Options**: project1 [project2] ...", inline=False)
         help_msg = await message.channel.send(embed=help_embed)
         self.add_active_panel(help_msg, message.author, {"deletable"})
         await help_msg.add_reaction(DELETE)
