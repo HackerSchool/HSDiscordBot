@@ -29,7 +29,7 @@ async def download_file(url, path):
     return True
 
 
-def sendFiles(file_name, folder_name):
+def send_files(file_name, folder_name):
     """
     Sends file to google drive folder
     Returns: 
@@ -63,7 +63,7 @@ def sendFiles(file_name, folder_name):
     return False
 
 
-def on_accept(attachment):
+async def on_accept(attachment):
     """Callback generator function for when a sprint report should be downloaded
 
     Args:
@@ -73,7 +73,7 @@ def on_accept(attachment):
         function: On accept function linked to the attachment
     """
     async def on_accept_callback(self, reaction, user, panel):
-        self.remove_active_panel(reaction.message, panel["user"])
+        await self.remove_active_panel(reaction.message, panel["user"])
 
         name = os.path.join(self.sprint_path, attachment.filename)
         result = await download_file(attachment.url, name)

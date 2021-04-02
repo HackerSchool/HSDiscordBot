@@ -1,10 +1,10 @@
 {
     "title": "Event Creator",
-    "description": "Examples:\n> Friday at 9pm\n> Tomorrow at 18:00\n> Now\n> DD-MM-YYYY 7:00 PM",
+    "description": "Examples:\n> 2 hours\n> 45 minutes\n> 1 hour and 20 minutes",
     "color": 7190903,
     "fields": [
         {
-            "name": "Event start",
+            "name": "Event duration",
             "value": "",
             "inline": false
         }
