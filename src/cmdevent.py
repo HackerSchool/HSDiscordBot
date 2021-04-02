@@ -26,6 +26,7 @@ class Event(SmartScrollable):
         super().__init__(message, pages, page, on_page_change, auto_footer)
         self.current_channel = channel
         self.selected_channel = channel
+        self.author = None
         self.event_start = None
         self.event_duration = None
         self.event_name = None
@@ -64,8 +65,9 @@ class Event(SmartScrollable):
             await self.message.edit(embed=self.update_page())
 
         elif self.page == 4:
+            n = datetime.datetime.now()
             date = self.parse_date(message.content)
-            if date is not None and datetime.datetime.now() <= date:
+            if date is not None and n <= date:
                 self.event_start = date
                 await self.message.edit(embed=self.update_page())
 
@@ -90,10 +92,36 @@ class Event(SmartScrollable):
             ))
             self.role_mentions = valid_roles
             await self.message.edit(embed=self.update_page())
+            
+    def get_message(self):
+        start = self.event_start.strftime("%a %b %d, %Y ⋅ %I%p")
+        if self.event_duration is not None:
+            duration = str(self.event_duration) + "h"
+        else:
+            duration = ""
+        mentions = " ".join(map(lambda r: r.mention, self.role_mentions))
+        
+        embed = discord.Embed()
+        embed.title = self.event_name
+        if self.event_description is not None:
+            embed.description = self.event_description
+        embed.color = 0x6db977
+        embed.add_field(name="Start Time & Duration", value=start+"\n"+duration, inline=False)
+        embed.add_field(name="✅ Accepted", value="-", inline=True)
+        embed.add_field(name="❌ Declined", value="-", inline=True)
+        embed.add_field(name="❓ Tentative", value="-", inline=True)
+        embed.set_footer(text=f"Created by {self.author.display_name}")
+        return mentions, embed
                 
 
     async def publish(self, client, reaction, user, panel):
-        await self.message.channel.send("Hurray!")
+        if self.event_name is not None and self.event_start is not None:
+            mentions, embed = self.get_message()
+            await self.selected_channel.send(mentions, embed=embed)
+            await client.remove_active_panel(reaction.message, panel["user"])
+        else:
+            await client.send_error(self.message.channel, "Not all required fields are filled out")
+
 
     @staticmethod
     def parse_time(string, half):
@@ -130,8 +158,7 @@ class Event(SmartScrollable):
     def parse_date(string):
         string = string.strip().lower()
         if string == "now":
-            n = datetime.datetime.now()
-            return n.replace(second=0, microsecond=0)
+            return datetime.datetime.now()
         else:
             match = __class__.PATTERN1.match(string)
             if match is not None:
@@ -187,10 +214,14 @@ def get_event_embed(self):
             value += f"{self.selected_channel.mention}"
         value += "\n(type the channel name to change it)"
 
-    elif self.page == 2: value = str(self.event_name)
-    elif self.page == 3: value = str(self.event_description)
-    elif self.page == 4: value = str(self.event_start)
-    elif self.page == 5: value = str(self.event_duration)
+    elif self.page == 2: 
+        value = str(self.event_name)
+    elif self.page == 3: 
+        value = str(self.event_description)
+    elif self.page == 4: 
+        value = "None" if self.event_start is None else self.event_start.strftime("%d/%m/%Y %H:%Mh")
+    elif self.page == 5: 
+        value = str(self.event_duration)
     
     elif self.page == 6: 
         if len(self.role_mentions) != 0:
@@ -214,6 +245,7 @@ async def command_event(self, message, args):
     s = Event(message.channel, None, 6, 1, get_event_embed)
     msg = await channel.send(embed=s.update_page())
     s.message = msg
+    s.author = message.author
     self.add_active_panel(msg, message.author, {"scrollable", "yesno"}, info={
         "scrollable": s,
         "on_accept": s.publish,
