@@ -50,14 +50,14 @@ class SmartScrollable(Scrollable):
         
 
 async def reaction_scrollable(self, reaction, user, panel):
-    if reaction.emoji == RIGHT:
+    if str(reaction.emoji) == RIGHT:
         if reaction.message.guild is not None:
             await reaction.remove(user)
         new_embed = panel["info"]["scrollable"].next_page()
         content = reaction.message.content
         await reaction.message.edit(content=content, embed=new_embed)
         
-    if reaction.emoji == LEFT:
+    if str(reaction.emoji) == LEFT:
         if reaction.message.guild is not None:
             await reaction.remove(user)
         content = reaction.message.content

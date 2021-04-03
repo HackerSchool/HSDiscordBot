@@ -6,7 +6,7 @@ import discord
 from choosable import NUMBERS
 from jsonembed import json_to_embed
 from scrollable import LEFT, RIGHT, Scrollable
-from utils import DELETE, CONFIRM, basedir
+from utils import DELETE, DECLINE, CONFIRM, basedir
 
 NEW_PROJECT_ARG = "-p"
 PROJECTS_CATEGORY = "PROJECTS"
@@ -291,7 +291,7 @@ async def delete_project(project_name, output_info_channel, guild, user_input=Fa
             "on_accept": lambda *args: accept_delete_project(*args, project_voice_channel, project_text_channel, project_role),
             "on_delete": lambda *args: refuse_delete_project(*args, project_name)
         })
-        await msg_usr_confirm.add_reaction(DELETE)
+        await msg_usr_confirm.add_reaction(DECLINE)
         await msg_usr_confirm.add_reaction(CONFIRM)
         return
     
@@ -350,7 +350,7 @@ async def command_project(self, message, args):
                 "on_accept": lambda *args: accept_new_project(*args, members, project_name),
                 "on_delete": refuse_new_project
             })
-            await msg_scc.add_reaction(DELETE)
+            await msg_scc.add_reaction(DECLINE)
             await msg_scc.add_reaction(CONFIRM)
         elif args[0] == "delete":
             if len(args) >= 2:

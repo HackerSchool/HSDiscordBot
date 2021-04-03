@@ -11,7 +11,9 @@ from scrollable import LEFT, RIGHT, SmartScrollable
 from utils import CONFIRM, DELETE, basedir
 
 
-class Event(SmartScrollable):
+ACCEPT, DECLINE, TENTATIVE = "✅", "❌", "❓"
+
+class EventCreator(SmartScrollable):
     PATTERN1 = re.compile(
         "((?:mon|tues|wednes|thurs|fri|satur|sun)day) +at +(\\d+(?:\\:\\d+)?) *(pm|am)?")
     PATTERN2 = re.compile("(tomorrow|today) +at +(\\d+(?:\\:\\d+)?) *(pm|am)?")
@@ -27,11 +29,11 @@ class Event(SmartScrollable):
         self.current_channel = channel
         self.selected_channel = channel
         self.author = None
+        self.event_name = None
+        self.event_description = None
         self.event_start = None
         self.event_duration = None
-        self.event_name = None
         self.event_repeat = None
-        self.event_description = None
         self.role_mentions = ()
 
     async def on_delete(self, client, reaction, user, panel):
@@ -92,33 +94,30 @@ class Event(SmartScrollable):
             ))
             self.role_mentions = valid_roles
             await self.message.edit(embed=self.update_page())
-            
-    def get_message(self):
-        start = self.event_start.strftime("%a %b %d, %Y ⋅ %I%p")
-        if self.event_duration is not None:
-            duration = str(self.event_duration) + "h"
-        else:
-            duration = ""
-        mentions = " ".join(map(lambda r: r.mention, self.role_mentions))
-        
-        embed = discord.Embed()
-        embed.title = self.event_name
-        if self.event_description is not None:
-            embed.description = self.event_description
-        embed.color = 0x6db977
-        embed.add_field(name="Start Time & Duration", value=start+"\n"+duration, inline=False)
-        embed.add_field(name="✅ Accepted", value="-", inline=True)
-        embed.add_field(name="❌ Declined", value="-", inline=True)
-        embed.add_field(name="❓ Tentative", value="-", inline=True)
-        embed.set_footer(text=f"Created by {self.author.display_name}")
-        return mentions, embed
-                
+                            
 
     async def publish(self, client, reaction, user, panel):
         if self.event_name is not None and self.event_start is not None:
-            mentions, embed = self.get_message()
-            await self.selected_channel.send(mentions, embed=embed)
+            event = Event(
+                self.event_name, 
+                self.event_description, 
+                self.event_start, 
+                self.event_duration, 
+                self.author,
+                self.role_mentions
+            )
+            embed = event.get_embed()
+            mentions = " ".join(map(lambda r: r.mention, self.role_mentions))
+            msg = await self.selected_channel.send(mentions, embed=embed)
             await client.remove_active_panel(reaction.message, panel["user"])
+            client.add_active_panel(msg, "all", {"deletable", "event"}, info={
+                "on_delete": event.on_delete,
+                "event": event
+            })
+            await msg.add_reaction(ACCEPT)
+            await msg.add_reaction(DECLINE)
+            await msg.add_reaction(TENTATIVE)
+            await msg.add_reaction(DELETE)
         else:
             await client.send_error(self.message.channel, "Not all required fields are filled out")
 
@@ -198,11 +197,57 @@ class Event(SmartScrollable):
                 except ValueError:
                     return None
                 return date
+            
+
+class Event:
+    MAX_ELEMENT_DISPLAY = 20
+    
+    def __init__(self, name, description, start, duration, author, roles):
+        self.name = name
+        self.description = description
+        self.start = start
+        self.duration = duration
+        self.author = author
+        self.roles = roles
+        self.accepted = []
+        self.declined = []
+        self.tentative = []
+        
+    def get_embed(self):           
+        start = self.start.strftime("%a %b %d, %Y ⋅ %I%p")
+        if self.duration is not None:
+            duration = str(self.duration) + "h"
+        else:
+            duration = ""
+        
+        embed = discord.Embed()
+        embed.title = self.name
+        if self.description is not None:
+            embed.description = self.description
+        embed.color = 0x6db977
+        embed.add_field(name="Start Time & Duration", value=start+"\n"+duration, inline=False)
+        embed.add_field(name="✅ Accepted", value="-", inline=True)
+        embed.add_field(name="❌ Declined", value="-", inline=True)
+        embed.add_field(name="❓ Tentative", value="-", inline=True)
+        embed.set_footer(text=f"Created by {self.author.display_name}")
+        
+        c = 1
+        for field in ("accepted", "declined", "tentative"):
+            l = getattr(self, field)
+            if len(l) != 0:
+                data = "\n".join(map(lambda u: f"> {u.display_name}", l[:__class__.MAX_ELEMENT_DISPLAY]))
+                if len(l) > __class__.MAX_ELEMENT_DISPLAY: data += "\n..."
+                embed.set_field_at(c, name=embed.fields[c].name, value=data)
+            c += 1
+        return embed
+    
+    async def on_delete(self, reaction, user, panel):
+        pass
 
 
-def get_event_embed(self):
+def get_event_creator_embed(self):
     path = os.path.join(basedir(__file__), "rsrc",
-                        "events", f"page{self.page}.json")
+                        "event_creator", f"page{self.page}.json")
     with open(path, "r") as f:
         base = json_to_embed(f.read())
 
@@ -242,7 +287,7 @@ async def command_event(self, message, args):
         msg = await channel.fetch_message(panels[panel]["id"])
         await self.remove_active_panel(msg, panels[panel]["user"])
         
-    s = Event(message.channel, None, 6, 1, get_event_embed)
+    s = EventCreator(message.channel, None, 6, 1, get_event_creator_embed)
     msg = await channel.send(embed=s.update_page())
     s.message = msg
     s.author = message.author
@@ -268,3 +313,13 @@ async def handler_event(self, message):
         return
 
     await self.get_data(message.channel.id)["active_event"].on_message(message)
+    
+async def reaction_event(self, reaction, user, panel):
+    if str(reaction.emoji) == ACCEPT:
+        await panel["info"]["event"].on_accept(self, reaction, user, panel)
+        
+    elif str(reaction.emoji) == DECLINE:
+        await panel["info"]["event"].on_decline(self, reaction, user, panel)
+        
+    elif str(reaction.emoji) == TENTATIVE:
+        await panel["info"]["event"].on_tentative(self, reaction, user, panel)
