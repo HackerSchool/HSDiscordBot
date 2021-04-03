@@ -8,6 +8,8 @@ import time
 import discord
 from discord.ext import tasks
 
+import utils
+
 
 @tasks.loop(minutes=1)
 async def task_worker(self):
@@ -124,9 +126,17 @@ class HSBot(discord.Client):
             self.active_panel[key] = {}
         if user != "all":
             user = user.id
-
         if user not in self.active_panel[key]:
             self.active_panel[key][user] = {}
+
+        if info is None:
+            info = {}
+
+        if "can_interact" not in info:
+            info["can_interact"] = utils.can_interact_default
+        elif not inspect.iscoroutinefunction(info["can_interact"]):
+            info["can_interact"] = utils.asynchronize(info["can_interact"])
+
         self.active_panel[key][user][message.id] = {
             "id": message.id, "types": types, "info": info, "user": user}
 
@@ -255,4 +265,5 @@ class HSBot(discord.Client):
                                      self.reactions[t]["text"])),
                                 all((isinstance(message.channel, discord.channel.DMChannel),
                                      self.reactions[t]["dm"])))):
-                            await self.reactions[t]["callback"](self, reaction, user, active[mid])
+                            if await active[mid]["info"]["can_interact"](self, reaction, user, active[mid]):
+                                await self.reactions[t]["callback"](self, reaction, user, active[mid])
