@@ -6,6 +6,7 @@ import client
 import cmdevent
 import cmdhelp
 import cmdproject
+import event
 import scrollable
 import sprint
 import utils
@@ -28,6 +29,7 @@ def setup(client):
     client.add_reaction("yesno", utils.reaction_yesno)
     client.add_reaction("scrollable", scrollable.reaction_scrollable)
     client.add_reaction("choosable", choosable.reaction_choosable)
+    client.add_reaction("event", event.reaction_event)
 
     client.add_custom_message_handler("sprint", sprint.handler_sprint)
     client.add_custom_message_handler(

@@ -6,7 +6,7 @@ import discord
 from choosable import NUMBERS
 from jsonembed import json_to_embed
 from scrollable import LEFT, RIGHT, Scrollable
-from utils import DELETE, CONFIRM, basedir
+from utils import DELETE, DECLINE, CONFIRM, basedir
 
 NEW_PROJECT_ARG = "-p"
 PROJECTS_CATEGORY = "PROJECTS"
@@ -52,7 +52,7 @@ def get_voice_channel_named(category, name):
 
 def get_text_channel_named(category, name):
     for channel in category.text_channels:
-        if channel.name == name:
+        if channel.name == name.lower():
             return channel
     return None
 
@@ -291,7 +291,7 @@ async def delete_project(project_name, output_info_channel, guild, user_input=Fa
             "on_accept": lambda *args: accept_delete_project(*args, project_voice_channel, project_text_channel, project_role),
             "on_delete": lambda *args: refuse_delete_project(*args, project_name)
         })
-        await msg_usr_confirm.add_reaction(DELETE)
+        await msg_usr_confirm.add_reaction(DECLINE)
         await msg_usr_confirm.add_reaction(CONFIRM)
         return
     
@@ -303,28 +303,42 @@ async def delete_project(project_name, output_info_channel, guild, user_input=Fa
 async def command_project(self, message, args):
     if len(args) == 0:
         help_embed = discord.Embed(color=0x6db977, title="Project Help",
-                                   description=f"**Usage**: {self.prefix}project [arg] [options]\nList of possible arguments:")
+                                   description=f"**Usage**: {self.prefix}project [arg] [options]\n" \
+                                               f"Square bracketed arguments are optional\n"
+                                               f"List of possible arguments:\n"
+                                   )
         help_embed.add_field(
-            name="new", value="Creates new project.\n**Arguments**: project name followed by participants\nCreates", inline=False)
+            name="new", value="**Description**: Creates new project.\n"\
+                                "• Creates one role, one voice channel and one text channel named \"project_name\"\n" \
+                                "• Assigns role to participants\n"\
+                                "• Assigns channel managing permissions to management roles, and viewing permission only to participants\n"\
+                                f"• Channels created under **{PROJECTS_CATEGORY}** category\n" \
+                                "**Options**: project_name participant1 [participant2] ...\n", inline=False)
         help_embed.add_field(
-            name="delete", value="Deletes existent project.\n**Arguments**: project1 project2 ...\nDeletes role and text/voice channels for each project if they exist", inline=False)
+            name="delete", value="**Description**: Deletes existent project or projects.\n"\
+                                "• Deletes role and text/voice channels for each project if they exist\n"\
+                                f"• Only affects text/voice channels under **{PROJECTS_CATEGORY}** category\n"\
+                                "**Options**: project1 [project2] ...", inline=False)
         help_msg = await message.channel.send(embed=help_embed)
         self.add_active_panel(help_msg, message.author, {"deletable"})
         await help_msg.add_reaction(DELETE)
     elif len(args) >= 2:
         if args[0] == "new":
             project_name, *participants = args[1:]
+            participants_str = ", ".join(participants)
+            names_str = ""
             members = await membersFromParticipants(self, message, participants)
+            if members is not None:
+                names = list(member.display_name for member in members)
+                names_str = ", ".join(names)
             if members is None or len(members) != len(args) - 2:
                 msg_no_members_embed = discord.Embed(
-                    color=0xc23f2b, title="Input Error", description=f"Please provide valid member names.\n Participants: {participants}\n Members: {members}")
+                    color=0xc23f2b, title="Input Error", description=f"Please provide valid member names.\n Names provided: {participants_str}\n Corresponding server members: {names_str}")
                 msg_no_members = await message.channel.send(embed=msg_no_members_embed)
                 self.add_active_panel(
                     msg_no_members, message.author, {"deletable"})
                 await msg_no_members.add_reaction(DELETE)
                 return
-            names = list(member.display_name for member in members)
-            names_str = ", ".join(names)
             msg_scc_embed = discord.Embed(color=0x99ab65)
             msg_scc_embed.title = "Are you sure?"
             msg_scc_embed.description = f"This action will create one role, one voice channel and one text channel!\n" \
@@ -336,7 +350,7 @@ async def command_project(self, message, args):
                 "on_accept": lambda *args: accept_new_project(*args, members, project_name),
                 "on_delete": refuse_new_project
             })
-            await msg_scc.add_reaction(DELETE)
+            await msg_scc.add_reaction(DECLINE)
             await msg_scc.add_reaction(CONFIRM)
         elif args[0] == "delete":
             if len(args) >= 2:
@@ -344,6 +358,12 @@ async def command_project(self, message, args):
 
                 for project in projects_to_delete:
                     await delete_project(project, message.channel, message.guild, user_input=True, self=self)
+        else:
+            msg_unrecognized_embed = discord.Embed(color=0x99ab65)
+            msg_unrecognized_embed.title = "Unrecognized option!\n" 
+            msg_unrecognized_embed.description = f"Try \"**{self.prefix}project**\" for more information"
+            msg_unrecognized = await message.channel.send(embed=msg_unrecognized_embed)
+            self.add_active_panel(msg_unrecognized, "all", {"deletable"})
 
     else:
         msg_err_embed = discord.Embed(color=0xfcba03)

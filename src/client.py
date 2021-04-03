@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import inspect
 import logging
 import pickle
 import shlex
@@ -7,6 +8,8 @@ import time
 
 import discord
 from discord.ext import tasks
+
+import utils
 
 
 @tasks.loop(minutes=1)
@@ -51,7 +54,7 @@ class HSBot(discord.Client):
             callback (function): Callback function
             once (bool, optional): True if task should only run once. Defaults to True.
         """
-            
+
         self.tasks.append({
             "start": start,
             "end": end,
@@ -124,11 +127,20 @@ class HSBot(discord.Client):
             self.active_panel[key] = {}
         if user != "all":
             user = user.id
-
         if user not in self.active_panel[key]:
             self.active_panel[key][user] = {}
-        self.active_panel[key][user][message.id] = {"id": message.id, "types": types, "info": info, "user": user}
-            
+
+        if info is None:
+            info = {}
+
+        if "can_interact" not in info:
+            info["can_interact"] = utils.can_interact_default
+        elif not inspect.iscoroutinefunction(info["can_interact"]):
+            info["can_interact"] = utils.asynchronize(info["can_interact"])
+
+        self.active_panel[key][user][message.id] = {
+            "id": message.id, "types": types, "info": info, "user": user}
+
     async def remove_active_panel(self, message, user, remove_reactions=True):
         """Remove an active panel from a specific user
 
@@ -202,6 +214,17 @@ class HSBot(discord.Client):
         task_worker.start(self)
         await self.change_presence(status=discord.Status.online, activity=discord.Game(self.description))
 
+    async def on_message_delete(self, message):
+        """Event triggered when a message is deleted"""
+        key = message.channel.id if message.guild is None else message.guild.id
+        to_remove = []
+        if key in self.active_panel:
+            for user in self.active_panel[key]:
+                if message.id in self.active_panel[key][user]:
+                    to_remove.append((user, message.id))
+        for user, msgid in to_remove:
+            del self.active_panel[key][user][msgid]
+
     async def on_message(self, message):
         """Event triggered when a user sends a message"""
         if message.author == self.user:
@@ -243,4 +266,5 @@ class HSBot(discord.Client):
                                      self.reactions[t]["text"])),
                                 all((isinstance(message.channel, discord.channel.DMChannel),
                                      self.reactions[t]["dm"])))):
-                            await self.reactions[t]["callback"](self, reaction, user, active[mid])
+                            if await active[mid]["info"]["can_interact"](self, reaction, user, active[mid]):
+                                await self.reactions[t]["callback"](self, reaction, user, active[mid])

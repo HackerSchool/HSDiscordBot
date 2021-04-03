@@ -1,12 +1,25 @@
 import os
 
 
-DELETE = "❌"
+DELETE = "<:delete:827871952336715776>"
 CONFIRM = "✅"
+DECLINE = "❌"
 
 
 def basedir(f):
     return os.path.abspath(os.path.join(f, os.pardir))
+
+
+def asynchronize(func):
+    async def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    wrapper.__doc__ = func.__doc__
+    wrapper.__name__ = func.__name__
+    return wrapper
+    
+
+async def can_interact_default(self, reaction, user, panel):
+    return True
 
 
 async def command_deletable(self, message, args):
@@ -26,16 +39,16 @@ async def delete_message(self, reaction, user, panel):
 
 async def reaction_deletable(self, reaction, user, panel):
     """Triggered when a deletable message is reacted on"""
-    if reaction.emoji == DELETE:
+    if str(reaction.emoji) == DELETE:
         await delete_message(self, reaction, user, panel)
 
 
 async def reaction_yesno(self, reaction, user, panel):
     """Triggered when a yes-no message is reacted on"""
-    if reaction.emoji == DELETE:
+    if str(reaction.emoji) == DECLINE:
         await delete_message(self, reaction, user, panel)
 
-    if reaction.emoji == CONFIRM:
+    if str(reaction.emoji) == CONFIRM:
         if reaction.message.guild is not None:
             await reaction.remove(user)
         if "on_accept" in panel["info"]:
