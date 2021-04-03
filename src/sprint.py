@@ -5,7 +5,7 @@ import discord
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 
-from utils import CONFIRM, DECLINE, YesNo
+from common import CONFIRM, DECLINE, YesNo
 
 
 class CollectYesNo(YesNo):

@@ -10,24 +10,17 @@ import event
 import interactive
 import scrollable
 import sprint
-import utils
-
-
-async def command_hello(self, message, args):
-    """Dummy command"""
-    await self.send_info(message.channel, "Hello!")
+import common
 
 
 def setup(client):
     """This function is responsible for registering all commands and reaction handlers with the client"""
-    client.add_command("hello", command_hello)
-    client.add_command("deletable", utils.command_deletable)
     client.add_command("help", cmdhelp.command_help)
     client.add_command("event", cmdevent.command_event)
     client.add_command("project", cmdproject.command_project)
 
-    client.add_reaction("deletable", utils.reaction_deletable)
-    client.add_reaction("yesno", utils.reaction_yesno)
+    client.add_reaction("deletable", common.reaction_deletable)
+    client.add_reaction("yesno", common.reaction_yesno)
     client.add_reaction("scrollable", scrollable.reaction_scrollable)
     client.add_reaction("choosable", choosable.reaction_choosable)
     client.add_reaction("event", event.reaction_event)

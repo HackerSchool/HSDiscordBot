@@ -1,6 +1,6 @@
 import discord
 
-from utils import Deletable
+from common import Deletable
 
 ACCEPT, DECLINE, TENTATIVE = "✅", "❌", "❓"
 

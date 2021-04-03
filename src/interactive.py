@@ -1,8 +1,8 @@
 import discord
-import utils
+import common
 
 
-class Interactive(utils.BasicPanel):
+class Interactive(common.BasicPanel):
     def __init__(self):
         super().__init__()
         self.message = None

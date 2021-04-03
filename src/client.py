@@ -10,6 +10,7 @@ import discord
 from discord.ext import tasks
 
 import activepanel
+import common
 import utils
 
 
@@ -132,7 +133,7 @@ class HSBot(discord.Client):
             self.active_panel[key][user] = {}
 
         if instance is None:
-            instance = utils.BasicPanel()
+            instance = common.BasicPanel()
 
         self.active_panel[key][user][message.id] = activepanel.ActivePanel(
             message.id,

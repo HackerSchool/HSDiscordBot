@@ -1,12 +1,13 @@
+import logging
 import os
 
-import logging
 import discord
 
 from choosable import NUMBERS
+from common import CONFIRM, DECLINE, DELETE, Deletable, YesNo
 from jsonembed import json_to_embed
 from scrollable import LEFT, RIGHT, Scrollable
-from utils import DELETE, DECLINE, CONFIRM, basedir, YesNo, Deletable
+from utils import basedir
 
 NEW_PROJECT_ARG = "-p"
 PROJECTS_CATEGORY = "PROJECTS"

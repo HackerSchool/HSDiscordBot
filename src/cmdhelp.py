@@ -2,7 +2,8 @@ import os
 
 from jsonembed import json_to_embed
 from scrollable import LEFT, RIGHT, Scrollable
-from utils import DELETE, Deletable, basedir
+from common import DELETE, Deletable
+from utils import basedir
 
 
 class HelpScrollable(Scrollable, Deletable):

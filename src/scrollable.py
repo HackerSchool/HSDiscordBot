@@ -1,12 +1,12 @@
 import discord
 
-import utils
+import common
 
 LEFT = "⬅️"
 RIGHT = "➡️"
 
 
-class Scrollable(utils.BasicPanel):
+class Scrollable(common.BasicPanel):
     def __init__(self, pages, page=1, auto_footer=True):
         super().__init__()
         self.pages = pages

@@ -6,11 +6,12 @@ import shlex
 
 import discord
 
+from common import CONFIRM, DELETE, Deletable
 from event import ACCEPT, DECLINE, TENTATIVE, Event
 from interactive import Interactive
 from jsonembed import json_to_embed
 from scrollable import LEFT, RIGHT, SmartScrollable
-from utils import CONFIRM, DELETE, Deletable, basedir
+from utils import basedir
 
 
 class EventCreator(SmartScrollable, Interactive):
