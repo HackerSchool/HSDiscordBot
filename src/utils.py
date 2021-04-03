@@ -18,8 +18,7 @@ def asynchronize(func):
     return wrapper
     
 
-@asynchronize
-def can_interact_default(self, reaction, user, panel):
+async def can_interact_default(self, reaction, user, panel):
     return True
 
 
