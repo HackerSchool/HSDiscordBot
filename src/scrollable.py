@@ -18,7 +18,7 @@ class Scrollable:
     def page_change(instance):
         return discord.Embed()
     
-    def update_page(self):
+    def get_embed(self):
         e = self.on_page_change(self)
         if self.auto_footer:
             e.set_footer(text=f"Page {self.page}/{self.pages}")
@@ -44,9 +44,9 @@ class Scrollable:
     
     
 class SmartScrollable(Scrollable):
-    def __init__(self, message, pages, page=1, on_page_change=None, auto_footer=True):
+    def __init__(self, pages, page=1, on_page_change=None, auto_footer=True):
         super().__init__(pages, page, on_page_change, auto_footer)
-        self.message = message
+        self.message = None
         
 
 async def reaction_scrollable(self, reaction, user, panel):
