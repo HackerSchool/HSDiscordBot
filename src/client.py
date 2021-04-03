@@ -51,7 +51,7 @@ class HSBot(discord.Client):
             callback (function): Callback function
             once (bool, optional): True if task should only run once. Defaults to True.
         """
-            
+
         self.tasks.append({
             "start": start,
             "end": end,
@@ -127,8 +127,9 @@ class HSBot(discord.Client):
 
         if user not in self.active_panel[key]:
             self.active_panel[key][user] = {}
-        self.active_panel[key][user][message.id] = {"id": message.id, "types": types, "info": info, "user": user}
-            
+        self.active_panel[key][user][message.id] = {
+            "id": message.id, "types": types, "info": info, "user": user}
+
     async def remove_active_panel(self, message, user, remove_reactions=True):
         """Remove an active panel from a specific user
 
@@ -201,6 +202,17 @@ class HSBot(discord.Client):
         logging.info(f"{self.user} is online")
         task_worker.start(self)
         await self.change_presence(status=discord.Status.online, activity=discord.Game(self.description))
+
+    async def on_message_delete(self, message):
+        """Event triggered when a message is deleted"""
+        key = message.channel.id if message.guild is None else message.guild.id
+        to_remove = []
+        if key in self.active_panel:
+            for user in self.active_panel[key]:
+                if message.id in self.active_panel[key][user]:
+                    to_remove.append((user, message.id))
+        for user, msgid in to_remove:
+            del self.active_panel[key][user][msgid]
 
     async def on_message(self, message):
         """Event triggered when a user sends a message"""
