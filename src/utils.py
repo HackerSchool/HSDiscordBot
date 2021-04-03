@@ -10,6 +10,19 @@ def basedir(f):
     return os.path.abspath(os.path.join(f, os.pardir))
 
 
+def asynchronize(func):
+    async def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    wrapper.__doc__ = func.__doc__
+    wrapper.__name__ = func.__name__
+    return wrapper
+    
+
+@asynchronize
+def can_interact_default(self, reaction, user, panel):
+    return True
+
+
 async def command_deletable(self, message, args):
     """Dummy command"""
     sent = await self.send_info(message.channel, "This message can be deleted")
