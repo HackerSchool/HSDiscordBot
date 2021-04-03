@@ -1,9 +1,11 @@
 import discord
 
+from utils import Deletable
 
 ACCEPT, DECLINE, TENTATIVE = "✅", "❌", "❓"
 
-class Event:
+
+class Event(Deletable):
     MAX_ELEMENT_DISPLAY = 20
 
     def __init__(self, name, description, start, duration, author, roles):
@@ -17,7 +19,7 @@ class Event:
         self.accepted = []
         self.declined = []
         self.tentative = []
-        
+
     async def update_page(self):
         mentions = " ".join(map(lambda r: r.mention, self.roles))
         embed = self.get_embed()
@@ -37,9 +39,12 @@ class Event:
         embed.color = 0x6db977
         embed.add_field(name="Start Time & Duration",
                         value=start+"\n"+duration, inline=False)
-        embed.add_field(name=f"✅ Accepted ({len(self.accepted)})", value="-", inline=True)
-        embed.add_field(name=f"❌ Declined ({len(self.declined)})", value="-", inline=True)
-        embed.add_field(name=f"❓ Tentative ({len(self.tentative)})", value="-", inline=True)
+        embed.add_field(
+            name=f"✅ Accepted ({len(self.accepted)})", value="-", inline=True)
+        embed.add_field(
+            name=f"❌ Declined ({len(self.declined)})", value="-", inline=True)
+        embed.add_field(
+            name=f"❓ Tentative ({len(self.tentative)})", value="-", inline=True)
         embed.set_footer(text=f"Created by {self.author.display_name}")
 
         c = 1
@@ -86,21 +91,24 @@ class Event:
 
 
 async def reaction_event(self, reaction, user, panel):
-    if len(panel["info"]["event"].roles) != 0:
+    if len(panel.instance.roles) != 0:
         allowed = False
-        for role in panel["info"]["event"].roles:
+        for role in panel.instance.roles:
             if role in user.roles:
                 allowed = True
                 break
     else:
-        allowed = True        
+        allowed = True
 
     if allowed:
         if str(reaction.emoji) == ACCEPT:
-            await panel["info"]["event"].on_accept(self, reaction, user, panel)
+            await panel.instance.on_accept(self, reaction, user, panel)
+            await reaction.remove(user)
 
         elif str(reaction.emoji) == DECLINE:
-            await panel["info"]["event"].on_decline(self, reaction, user, panel)
+            await panel.instance.on_decline(self, reaction, user, panel)
+            await reaction.remove(user)
 
         elif str(reaction.emoji) == TENTATIVE:
-            await panel["info"]["event"].on_tentative(self, reaction, user, panel)
+            await panel.instance.on_tentative(self, reaction, user, panel)
+            await reaction.remove(user)

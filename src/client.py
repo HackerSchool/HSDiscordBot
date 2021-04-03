@@ -9,6 +9,7 @@ import time
 import discord
 from discord.ext import tasks
 
+import activepanel
 import utils
 
 
@@ -113,7 +114,7 @@ class HSBot(discord.Client):
             total.update(self.active_panel[key][user])
         return total
 
-    def add_active_panel(self, message, user, types, info=None):
+    def add_active_panel(self, message, user, types, instance=None):
         """Add an active panel for a specific user
 
         Args:
@@ -122,7 +123,7 @@ class HSBot(discord.Client):
             types (set): types of panel
             info (dict, Optional): useful panel info
         """
-        key = message.channel.id if message.guild is None else message.guild.id
+        key = utils.get_key(message)
         if key not in self.active_panel:
             self.active_panel[key] = {}
         if user != "all":
@@ -130,16 +131,15 @@ class HSBot(discord.Client):
         if user not in self.active_panel[key]:
             self.active_panel[key][user] = {}
 
-        if info is None:
-            info = {}
+        if instance is None:
+            instance = utils.BasicPanel()
 
-        if "can_interact" not in info:
-            info["can_interact"] = utils.can_interact_default
-        elif not inspect.iscoroutinefunction(info["can_interact"]):
-            info["can_interact"] = utils.asynchronize(info["can_interact"])
-
-        self.active_panel[key][user][message.id] = {
-            "id": message.id, "types": types, "info": info, "user": user}
+        self.active_panel[key][user][message.id] = activepanel.ActivePanel(
+            message.id,
+            user,
+            types,
+            instance
+        )
 
     async def remove_active_panel(self, message, user, remove_reactions=True):
         """Remove an active panel from a specific user
@@ -155,7 +155,7 @@ class HSBot(discord.Client):
                 for reaction in message.reactions:
                     if reaction.me:
                         await reaction.remove(self.user)
-        key = message.channel.id if message.guild is None else message.guild.id
+        key = utils.get_key(message)
         del self.active_panel[key][user][message.id]
 
     def add_command(self, name, func, text=True, dm=False):
@@ -216,7 +216,7 @@ class HSBot(discord.Client):
 
     async def on_message_delete(self, message):
         """Event triggered when a message is deleted"""
-        key = message.channel.id if message.guild is None else message.guild.id
+        key = utils.get_key(message)
         to_remove = []
         if key in self.active_panel:
             for user in self.active_panel[key]:
@@ -256,15 +256,15 @@ class HSBot(discord.Client):
             return
 
         message = reaction.message
-        key = (message.channel if message.guild is None else message.guild).id
+        key = utils.get_key(message)
         active = self.get_active_panels(key, user.id)
         for mid in active:
             if message.id == mid:
-                for t in active[mid]["types"]:
+                for t in active[mid].types:
                     if t in self.reactions:
                         if any((all((isinstance(message.channel, discord.channel.TextChannel),
                                      self.reactions[t]["text"])),
                                 all((isinstance(message.channel, discord.channel.DMChannel),
                                      self.reactions[t]["dm"])))):
-                            if await active[mid]["info"]["can_interact"](self, reaction, user, active[mid]):
+                            if await active[mid].instance.can_interact(self, reaction, user, active[mid]):
                                 await self.reactions[t]["callback"](self, reaction, user, active[mid])

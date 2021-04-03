@@ -6,11 +6,61 @@ import discord
 from choosable import NUMBERS
 from jsonembed import json_to_embed
 from scrollable import LEFT, RIGHT, Scrollable
-from utils import DELETE, DECLINE, CONFIRM, basedir
+from utils import DELETE, DECLINE, CONFIRM, basedir, YesNo, Deletable
 
 NEW_PROJECT_ARG = "-p"
 PROJECTS_CATEGORY = "PROJECTS"
 MANAGEMENT_ROLES = ("Chefes", "Dev", "RH", "Marketing")
+
+
+class CreateProjectYesNo(YesNo):
+    def __init__(self, project_name, members):
+        super().__init__()
+        self.project_name = project_name
+        self.members = members
+
+    async def on_accept(self, client, reaction, user, panel):
+        channel = reaction.message.channel
+        server = reaction.message.channel.guild
+        await make_new_project(self.members, self.project_name, channel, server)
+        await client.remove_active_panel(reaction.message, panel.user)
+
+    async def on_delete(self, client, reaction, user, panel):
+        channel = reaction.message.channel
+        msgreff_embed = discord.Embed(color=0x6db977)
+        msgreff_embed.title = "New project creation aborted!"
+        await channel.send(embed=msgreff_embed)
+
+
+class DeleteProjectYesNo(YesNo):
+    def __init__(self, project_voice_channel, project_text_channel, project_role):
+        super().__init__()
+        self.project_voice_channel = project_voice_channel
+        self.project_text_channel = project_text_channel
+        self.project_role = project_role
+
+    async def delete_project_data(self):
+        if self.project_voice_channel is not None:
+            await self.project_voice_channel.delete()
+        if self.project_text_channel is not None:
+            await self.project_text_channel.delete()
+        if self.project_role is not None:
+            await self.project_role.delete()
+
+    async def on_accept(self, client, reaction, user, panel):
+        channel = reaction.message.channel
+        await self.delete_project_data()
+        await client.remove_active_panel(reaction.message, panel.user)
+        msg_deletion_success_embed = discord.Embed(
+            title="Deletion successful!", description=f"**{self.project_role.name}** removed")
+        await channel.send(embed=msg_deletion_success_embed)
+
+    async def on_decline(self, client, reaction, user, panel):
+        channel = reaction.message.channel
+        msgreff_embed = discord.Embed(color=0x6db977)
+        msgreff_embed.title = "Project deletion aborted!"
+        msgreff_embed.description = f"**{self.project_name} was untouched"
+        await channel.send(embed=msgreff_embed)
 
 
 def get_room_embed(self):
@@ -77,7 +127,7 @@ async def get_category_named_or_create(guild, name):
     return await guild.create_category_channel(name=name, reason="Added at project creation because none existed")
 
 
-def memberFromParticipant(self, message, participant):
+def member_from_participant(self, message, participant):
     def verify(member):
         # if not isinstance(member, discord.Member):
         #    return False
@@ -114,18 +164,19 @@ def did_you_mean_project(guild, failed_name):
     else:
         return None
 
-async def membersFromParticipants(self, message, participants):
+
+async def members_from_participants(self, message, participants):
     members = []
     for participant in participants:
-        new_member = memberFromParticipant(self, message, participant)
+        new_member = member_from_participant(self, message, participant)
         if new_member is not None:
             members.append(new_member)
         else:
             msg_not_valid_member_embed = discord.Embed(
                 color=0xc23f2b, title="Error", description=f"{participant} is not a valid member!")
             msg_not_valid_member = await message.channel.send(embed=msg_not_valid_member_embed)
-            self.add_active_panel(msg_not_valid_member,
-                                  message.author, {"deletable"})
+            self.add_active_panel(msg_not_valid_member, message.author, {
+                                  "deletable"}, Deletable())
             await msg_not_valid_member.add_reaction(DELETE)
     if len(members):
         return members
@@ -183,7 +234,8 @@ async def make_new_project(members, project_name, output_info_channel, server):
 
     # If the project already exists, let the user know
     if existent_text_channel is not None and existent_voice_channel is not None and existent_role is not None:
-        msg_duplicate_embed = discord.Embed(color=0xf2d61b, title="Project already exists!", description="Nothing was done")
+        msg_duplicate_embed = discord.Embed(
+            color=0xf2d61b, title="Project already exists!", description="Nothing was done")
         await output_info_channel.send(embed=msg_duplicate_embed)
         return
 
@@ -203,45 +255,7 @@ async def make_new_project(members, project_name, output_info_channel, server):
     await output_info_channel.send(embed=msgacc_embed)
 
 
-
-async def accept_new_project(self, reaction, user, panel, members, project_name):
-    channel = reaction.message.channel
-    server = reaction.message.channel.guild
-    await make_new_project(members, project_name, channel, server)
-    await self.remove_active_panel(reaction.message, panel["user"])
-
-
-async def refuse_new_project(self, reaction, user, panel):
-    channel = reaction.message.channel
-    msgreff_embed = discord.Embed(color=0x6db977)
-    msgreff_embed.title = "New project creation aborted!"
-    await channel.send(embed=msgreff_embed)
-
-
-async def accept_delete_project(self, reaction, user, panel, project_voice_channel, project_text_channel, project_role):
-    channel = reaction.message.channel
-    await delete_project_data(project_voice_channel, project_text_channel, project_role)
-    await self.remove_active_panel(reaction.message, panel["user"])
-    msg_deletion_success_embed = discord.Embed(title = "Deletion successful!", description= f"**{project_role.name}** removed")
-    await channel.send(embed=msg_deletion_success_embed)
-
-async def delete_project_data(project_voice_channel, project_text_channel, project_role):
-    if project_voice_channel is not None:
-        await project_voice_channel.delete()
-    if project_text_channel is not None:
-        await project_text_channel.delete()
-    if project_role is not None:
-        await project_role.delete()
-
-async def refuse_delete_project(self, reaction, user, panel, project_name):
-    channel = reaction.message.channel
-    msgreff_embed = discord.Embed(color=0x6db977)
-    msgreff_embed.title = "Project deletion aborted!"
-    msgreff_embed.description = f"**{project_name} was untouched"
-    await channel.send(embed=msgreff_embed)
-
-
-async def delete_project(project_name, output_info_channel, guild, user_input=False, self= None):
+async def delete_project(project_name, output_info_channel, guild, user_input=False, self=None):
     info_str = ""
     projects_category = get_category_named(guild, PROJECTS_CATEGORY)
 
@@ -278,56 +292,57 @@ async def delete_project(project_name, output_info_channel, guild, user_input=Fa
             await output_info_channel.send(embed=msg_usr_none_embed)
             return
 
-
         enum_prefix = "• "
         info = enum_prefix.join((enum_prefix+info_str).splitlines(True))
-        
+
         msg_usr_confirm_embed = discord.Embed(color=0x99ab65)
         msg_usr_confirm_embed.title = "Are you sure?"
         msg_usr_confirm_embed.description = f"This action will delete project **{project_name}**\n"
         msg_usr_confirm_embed.add_field(name="Info", value=info, inline=False)
         msg_usr_confirm = await output_info_channel.send(embed=msg_usr_confirm_embed)
-        self.add_active_panel(msg_usr_confirm, "all", {"yesno"}, info={
-            "on_accept": lambda *args: accept_delete_project(*args, project_voice_channel, project_text_channel, project_role),
-            "on_delete": lambda *args: refuse_delete_project(*args, project_name)
-        })
+
+        yn = DeleteProjectYesNo(project_voice_channel,
+                                project_text_channel, project_role)
+
+        self.add_active_panel(msg_usr_confirm, "all", {"yesno"}, yn)
+
         await msg_usr_confirm.add_reaction(DECLINE)
         await msg_usr_confirm.add_reaction(CONFIRM)
         return
-    
+
     # If no user input, just delete it
     await delete_project_data(project_voice_channel, project_text_channel, project_role)
-    
 
 
 async def command_project(self, message, args):
     if len(args) == 0:
         help_embed = discord.Embed(color=0x6db977, title="Project Help",
-                                   description=f"**Usage**: {self.prefix}project [arg] [options]\n" \
+                                   description=f"**Usage**: {self.prefix}project [arg] [options]\n"
                                                f"Square bracketed arguments are optional\n"
                                                f"List of possible arguments:\n"
                                    )
         help_embed.add_field(
-            name="new", value="**Description**: Creates new project.\n"\
-                                "• Creates one role, one voice channel and one text channel named \"project_name\"\n" \
-                                "• Assigns role to participants\n"\
-                                "• Assigns channel managing permissions to management roles, and viewing permission only to participants\n"\
-                                f"• Channels created under **{PROJECTS_CATEGORY}** category\n" \
-                                "**Options**: project_name participant1 [participant2] ...\n", inline=False)
+            name="new", value="**Description**: Creates new project.\n"
+            "• Creates one role, one voice channel and one text channel named \"project_name\"\n"
+            "• Assigns role to participants\n"
+            "• Assigns channel managing permissions to management roles, and viewing permission only to participants\n"
+            f"• Channels created under **{PROJECTS_CATEGORY}** category\n"
+            "**Options**: project_name participant1 [participant2] ...\n", inline=False)
         help_embed.add_field(
-            name="delete", value="**Description**: Deletes existent project or projects.\n"\
-                                "• Deletes role and text/voice channels for each project if they exist\n"\
-                                f"• Only affects text/voice channels under **{PROJECTS_CATEGORY}** category\n"\
-                                "**Options**: project1 [project2] ...", inline=False)
+            name="delete", value="**Description**: Deletes existent project or projects.\n"
+            "• Deletes role and text/voice channels for each project if they exist\n"
+            f"• Only affects text/voice channels under **{PROJECTS_CATEGORY}** category\n"
+            "**Options**: project1 [project2] ...", inline=False)
         help_msg = await message.channel.send(embed=help_embed)
-        self.add_active_panel(help_msg, message.author, {"deletable"})
+        self.add_active_panel(help_msg, message.author, {
+                              "deletable"}, Deletable())
         await help_msg.add_reaction(DELETE)
     elif len(args) >= 2:
         if args[0] == "new":
             project_name, *participants = args[1:]
             participants_str = ", ".join(participants)
             names_str = ""
-            members = await membersFromParticipants(self, message, participants)
+            members = await members_from_participants(self, message, participants)
             if members is not None:
                 names = list(member.display_name for member in members)
                 names_str = ", ".join(names)
@@ -335,8 +350,8 @@ async def command_project(self, message, args):
                 msg_no_members_embed = discord.Embed(
                     color=0xc23f2b, title="Input Error", description=f"Please provide valid member names.\n Names provided: {participants_str}\n Corresponding server members: {names_str}")
                 msg_no_members = await message.channel.send(embed=msg_no_members_embed)
-                self.add_active_panel(
-                    msg_no_members, message.author, {"deletable"})
+                self.add_active_panel(msg_no_members, message.author, {
+                                      "deletable"}, Deletable())
                 await msg_no_members.add_reaction(DELETE)
                 return
             msg_scc_embed = discord.Embed(color=0x99ab65)
@@ -346,10 +361,11 @@ async def command_project(self, message, args):
                                         f"**Project name:** {project_name}\n"\
                                         f"**Participants:** {names_str}"
             msg_scc = await message.channel.send(embed=msg_scc_embed)
-            self.add_active_panel(msg_scc, message.author, {"yesno"}, info={
-                "on_accept": lambda *args: accept_new_project(*args, members, project_name),
-                "on_delete": refuse_new_project
-            })
+
+            yn = CreateProjectYesNo(project_name, members)
+
+            self.add_active_panel(msg_scc, message.author, {"yesno"}, yn)
+
             await msg_scc.add_reaction(DECLINE)
             await msg_scc.add_reaction(CONFIRM)
         elif args[0] == "delete":
@@ -360,17 +376,17 @@ async def command_project(self, message, args):
                     await delete_project(project, message.channel, message.guild, user_input=True, self=self)
         else:
             msg_unrecognized_embed = discord.Embed(color=0x99ab65)
-            msg_unrecognized_embed.title = "Unrecognized option!\n" 
+            msg_unrecognized_embed.title = "Unrecognized option!\n"
             msg_unrecognized_embed.description = f"Try \"**{self.prefix}project**\" for more information"
             msg_unrecognized = await message.channel.send(embed=msg_unrecognized_embed)
-            self.add_active_panel(msg_unrecognized, "all", {"deletable"})
+            self.add_active_panel(msg_unrecognized, "all", {
+                                  "deletable"}, Deletable())
 
     else:
         msg_err_embed = discord.Embed(color=0xfcba03)
         msg_err_embed.title = "Improper command usage"
         msg_err_embed.description = f"{self.prefix}project for more information"
         msgerr = await message.channel.send(embed=msg_err_embed)
-        self.add_active_panel(msgerr, message.author, {"deletable"}, info={})
+        self.add_active_panel(msgerr, message.author, {
+                              "deletable"}, Deletable())
         await msgerr.add_reaction(DELETE)
-
-

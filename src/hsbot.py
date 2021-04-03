@@ -7,6 +7,7 @@ import cmdevent
 import cmdhelp
 import cmdproject
 import event
+import interactive
 import scrollable
 import sprint
 import utils
@@ -33,7 +34,7 @@ def setup(client):
 
     client.add_custom_message_handler("sprint", sprint.handler_sprint)
     client.add_custom_message_handler(
-        "event", cmdevent.handler_event, text=False, dm=True)
+        "interactive", interactive.handler_interactive, dm=True)
 
 
 if __name__ == "__main__":

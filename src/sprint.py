@@ -5,6 +5,35 @@ import discord
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 
+from utils import CONFIRM, DECLINE, YesNo
+
+
+class CollectYesNo(YesNo):
+    def __init__(self, attachment):
+        super().__init__()
+        self.attachment = attachment
+
+    async def on_accept(self, client, reaction, user, panel):
+        await client.remove_active_panel(reaction.message, panel.user)
+
+        name = os.path.join(client.sprint_path, self.attachment.filename)
+        result = await download_file(self.attachment.url, name)
+
+        content = reaction.message.content
+        if result:
+            if send_files(name, "Test"):
+                embed = discord.Embed(title="Success!", color=0x6db977)
+                embed.description = "Downloaded sprint report"
+            else:
+                embed = discord.Embed(title="Fail!", color=0xff0000)
+                embed.description = "Upload to storage has failed"
+            os.remove(name)
+        else:
+            embed = discord.Embed(title="Fail!", color=0xff0000)
+            embed.description = "Download failed"
+        await reaction.message.edit(content=content, embed=embed)
+        await reaction.message.clear_reactions()
+
 
 async def download_file(url, path):
     """Download a file from the internet
@@ -63,44 +92,12 @@ def send_files(file_name, folder_name):
     return False
 
 
-async def on_accept(attachment):
-    """Callback generator function for when a sprint report should be downloaded
-
-    Args:
-        attachment (discord.Attachment): Attachment object
-
-    Returns:
-        function: On accept function linked to the attachment
-    """
-    async def on_accept_callback(self, reaction, user, panel):
-        await self.remove_active_panel(reaction.message, panel["user"])
-
-        name = os.path.join(self.sprint_path, attachment.filename)
-        result = await download_file(attachment.url, name)
-
-        content = reaction.message.content
-        if result:
-            if sendFiles(name, "Test"):
-                embed = discord.Embed(title="Success!", color=0x6db977)
-                embed.description = "Downloaded sprint report"
-            else:
-                embed = discord.Embed(title="Fail!", color=0xff0000)
-                embed.description = "Upload to storage has failed"
-            os.remove(name)
-        else:
-            embed = discord.Embed(title="Fail!", color=0xff0000)
-            embed.description = "Download failed"
-        await reaction.message.edit(content=content, embed=embed)
-        await reaction.message.clear_reactions()
-    return on_accept_callback
-
 async def handler_sprint(self, message):
     """Used when a file is sent to a channel"""
     for attachment in message.attachments:
         if "sprint" in attachment.filename.lower():
             msg = await self.send_info(message.channel, f"Should I capture '{attachment.filename}' as a sprint report?")
-            self.add_active_panel(msg, message.author, {"yesno"}, {
-                "on_accept": on_accept(attachment)
-            })
-            await msg.add_reaction("✅")
-            await msg.add_reaction("❌")
+            yn = CollectYesNo(attachment)
+            self.add_active_panel(msg, message.author, {"yesno"}, yn)
+            await msg.add_reaction(CONFIRM)
+            await msg.add_reaction(DECLINE)
