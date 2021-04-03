@@ -1,5 +1,5 @@
 # HS Discord Bot
-## A Discord bot to help Human Resources manage events
+## A Discord bot to help manage hackerschool events
 ____
 
 
