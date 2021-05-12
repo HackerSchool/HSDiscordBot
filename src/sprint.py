@@ -5,17 +5,15 @@ import discord
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 
-from common import CONFIRM, DECLINE, YesNo
+from panels import YesNoActivePanel
 
 
-class CollectYesNo(YesNo):
-    def __init__(self, attachment):
-        super().__init__()
+class CollectYesNo(YesNoActivePanel):
+    def __init__(self, attachment, userid=None):
+        super().__init__(userid=userid)
         self.attachment = attachment
 
-    async def on_accept(self, client, reaction, user, panel):
-        await client.remove_active_panel(reaction.message, panel.user)
-
+    async def on_accept(self, client, reaction, user):
         name = os.path.join(client.sprint_path, self.attachment.filename)
         result = await download_file(self.attachment.url, name)
 
@@ -33,6 +31,9 @@ class CollectYesNo(YesNo):
             embed.description = "Download failed"
         await reaction.message.edit(content=content, embed=embed)
         await reaction.message.clear_reactions()
+        
+    async def on_decline(self, client, reaction, user):
+        await self.message.delete()
 
 
 async def download_file(url, path):
@@ -97,7 +98,5 @@ async def handler_sprint(self, message):
     for attachment in message.attachments:
         if "sprint" in attachment.filename.lower():
             msg = await self.send_info(message.channel, f"Should I capture '{attachment.filename}' as a sprint report?")
-            yn = CollectYesNo(attachment)
-            self.add_active_panel(msg, message.author, {"yesno"}, yn)
-            await msg.add_reaction(CONFIRM)
-            await msg.add_reaction(DECLINE)
+            yn = CollectYesNo(attachment, userid=message.author.id)
+            await self.add_active_panel(msg, yn)

@@ -1,16 +1,11 @@
 import logging
 import sys
 
-import choosable
 import client
 import cmdevent
 import cmdhelp
 import cmdproject
-import event
-import interactive
-import scrollable
 import sprint
-import common
 
 
 def setup(client):
@@ -19,15 +14,7 @@ def setup(client):
     client.add_command("event", cmdevent.command_event)
     client.add_command("project", cmdproject.command_project)
 
-    client.add_reaction("deletable", common.reaction_deletable)
-    client.add_reaction("yesno", common.reaction_yesno)
-    client.add_reaction("scrollable", scrollable.reaction_scrollable)
-    client.add_reaction("choosable", choosable.reaction_choosable)
-    client.add_reaction("event", event.reaction_event)
-
     client.add_custom_message_handler("sprint", sprint.handler_sprint)
-    client.add_custom_message_handler(
-        "interactive", interactive.handler_interactive, dm=True)
 
 
 if __name__ == "__main__":

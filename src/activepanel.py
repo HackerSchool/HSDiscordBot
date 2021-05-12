@@ -2,28 +2,25 @@ import time
 
 
 class ActivePanel:
-    def __init__(self, mid, user, types, instance):
-        """ActivePanel class
-
-        Args:
-            mid (int): The active panel's message ID
-            user (int): Active panel users
-            types (set): All types this active panel's instance inherits from
-            instance (common.BasicPanel): This active panel's instance
-        """
-        self.instance = instance
-        self.types = types
-        self.timestamp = time.time()
-        self.user = user
-        self.id = mid
-
-    def is_type(self, string):
-        """Check if this active panel is of a certain type
-
-        Args:
-            string (str): Type
-
-        Returns:
-            bool: True if 'string' is one of its types
-        """
-        return string in self.types
+    def __init__(self):
+        self.userid = None
+        self.message = None
+        
+    async def on_reaction(self, client, reaction, user):
+        pass
+        
+    async def on_message(self, client, message):
+        pass
+    
+    async def on_deactivate(self, client):
+        pass
+    
+    async def init(self, message):
+        self.message = message
+    
+    async def can_interact(self, client, user):
+        if self.userid is not None:
+            return user.id == self.userid 
+        if self.message is not None:
+            return user.id == self.message.author.id 
+        return False

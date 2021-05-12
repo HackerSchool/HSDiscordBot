@@ -1,17 +1,10 @@
-import asyncio
 import datetime
-import inspect
 import logging
-import pickle
 import shlex
 import time
 
 import discord
 from discord.ext import tasks
-
-import activepanel
-import common
-import utils
 
 
 @tasks.loop(minutes=1)
@@ -26,6 +19,18 @@ async def task_worker(self):
                 past.append(task)
     for task in past:
         self.tasks.remove(task)
+        
+@tasks.loop(minutes=1)
+async def cleanup_active_panels(client):
+    t = time.time()
+    to_remove = []
+    for key in client.active_panels:
+        for panel in client.active_panels[key]:
+            if (t - client.active_panels[key][panel]["timestamp"]) >= client.active_panels[key][panel]["timeout"]*60:
+                to_remove.append((key, panel))
+    for key, panel in to_remove:
+        await client.active_panels[key][panel]["panel"].on_deactivate(client)
+        del client.active_panels[key][panel]
 
 
 class HSBot(discord.Client):
@@ -38,7 +43,7 @@ class HSBot(discord.Client):
 
         self.fetch_offline_members = True
         self.prefix = prefix
-        self.active_panel = {}
+        self.active_panels = {}
         self.commands = {}
         self.reactions = {}
         self.custom_msg_handlers = {}
@@ -64,16 +69,6 @@ class HSBot(discord.Client):
             "once": once
         })
 
-    def save(self, file):
-        """Save client info to a file"""
-        with open(file, "wb") as f:
-            pickle.dump((self.dm, self.pcs, self.npcs, self.items), f)
-
-    def load(self, file):
-        """Load client info from a file"""
-        with open(file, "rb") as f:
-            self.dm, self.pcs, self.npcs, self.items = pickle.load(f)
-
     def get_data(self, key):
         """Get custom data from a server / DM
 
@@ -96,59 +91,47 @@ class HSBot(discord.Client):
         """
         self.data[key] = value
 
-    def get_active_panels(self, key, user):
-        """Get the active panels for a specific user
+    def get_active_panel(self, key, message):
+        if key not in self.active_panels:
+            return None
+        if message.id not in self.active_panels[key]:
+            return None
+        return self.active_panels[key][message.id]["panel"]
 
-        Args:
-            key (int): Guild or channel ID
-            user (int): User ID
-
-        Returns:
-            dict: Active panels
-        """
-        total = {}
-        if key not in self.active_panel:
+    async def get_active_panels(self, key, user):
+        """Get the active panels for a specific user"""
+        total = set()
+        if key not in self.active_panels:
             return total
-        if "all" in self.active_panel[key]:
-            total.update(self.active_panel[key]["all"])
-        if user in self.active_panel[key]:
-            total.update(self.active_panel[key][user])
+        
+        for panel in self.active_panels[key]:
+            if await self.active_panels[key][panel]["panel"].can_interact(self, user):
+                total.add(self.active_panels[key][panel]["panel"])
         return total
+    
+    async def is_active_panel(self, key, user, message):
+        """Check if this message is an active panel that can interact with the user"""
+        if key not in self.active_panels:
+            return False
+        if message.id not in self.active_panels[key]:
+            return False
+        return await self.active_panels[key][message.id]["panel"].can_interact(self, user)
 
-    def add_active_panel(self, message, user, types, instance=None):
-        """Add an active panel for a specific user
+    async def add_active_panel(self, message, panel, timeout=5):
+        """Add an active panel"""
+        key = message.channel.id if message.guild is None else message.guild.id
+        if key not in self.active_panels:
+            self.active_panels[key] = {}
 
-        Args:
-            message (discord.Message): Message object (to be the active panel)
-            user (discord.User | str): User
-            types (set): types of panel
-            info (dict, Optional): useful panel info
-        """
-        key = utils.get_key(message)
-        if key not in self.active_panel:
-            self.active_panel[key] = {}
-        if user != "all":
-            user = user.id
-        if user not in self.active_panel[key]:
-            self.active_panel[key][user] = {}
+        self.active_panels[key][message.id] = {
+            "panel": panel, 
+            "timestamp": time.time(), 
+            "timeout": timeout
+        }
+        await panel.init(message)
 
-        if instance is None:
-            instance = common.BasicPanel()
-
-        self.active_panel[key][user][message.id] = activepanel.ActivePanel(
-            message.id,
-            user,
-            types,
-            instance
-        )
-
-    async def remove_active_panel(self, message, user, remove_reactions=True):
-        """Remove an active panel from a specific user
-
-        Args:
-            message (discord.Message): Message object (to be the active panel)
-            user (discord.User | str): User
-        """
+    async def remove_active_panel(self, message, remove_reactions:bool=True):
+        """Remove an active panel"""
         if remove_reactions:
             if message.guild is not None:
                 await message.clear_reactions()
@@ -156,8 +139,9 @@ class HSBot(discord.Client):
                 for reaction in message.reactions:
                     if reaction.me:
                         await reaction.remove(self.user)
-        key = utils.get_key(message)
-        del self.active_panel[key][user][message.id]
+        key = message.channel.id if message.guild is None else message.guild.id
+        await self.active_panels[key][message.id]["panel"].on_deactivate(self)
+        del self.active_panels[key][message.id]
 
     def add_command(self, name, func, text=True, dm=False):
         """Add a command to the bot
@@ -213,23 +197,25 @@ class HSBot(discord.Client):
         """Event triggered when the bot becomes online"""
         logging.info(f"{self.user} is online")
         task_worker.start(self)
+        cleanup_active_panels.start(self)
         await self.change_presence(status=discord.Status.online, activity=discord.Game(self.description))
 
     async def on_message_delete(self, message):
         """Event triggered when a message is deleted"""
-        key = utils.get_key(message)
+        key = message.channel.id if message.guild is None else message.guild.id
         to_remove = []
-        if key in self.active_panel:
-            for user in self.active_panel[key]:
-                if message.id in self.active_panel[key][user]:
-                    to_remove.append((user, message.id))
-        for user, msgid in to_remove:
-            del self.active_panel[key][user][msgid]
+        if key in self.active_panels:
+            if message.id in self.active_panels[key]:
+                to_remove.append(message.id)
+        for msgid in to_remove:
+            del self.active_panels[key][msgid]
 
     async def on_message(self, message):
         """Event triggered when a user sends a message"""
         if message.author == self.user:
             return
+
+        key = message.channel.id if message.guild is None else message.guild.id
 
         if message.content.startswith(self.prefix):
             msg_content = message.content[1:]
@@ -242,14 +228,16 @@ class HSBot(discord.Client):
                     await self.commands[command]["callback"](self, message, args)
 
         else:
+            key = (message.channel if message.guild is None else message.guild).id
+            for panel in await self.get_active_panels(key, message.author):
+                await panel.on_message(self, message)
+            
             for handler in self.custom_msg_handlers:
                 if any((all((isinstance(message.channel, discord.channel.TextChannel),
                              self.custom_msg_handlers[handler]["text"])),
                         all((isinstance(message.channel, discord.channel.DMChannel),
                              self.custom_msg_handlers[handler]["dm"])))):
                     await self.custom_msg_handlers[handler]["callback"](self, message)
-        # elif len(message.attachments) != 0:
-        #    await sprint.process_attachments(self, message)
 
     async def on_reaction_add(self, reaction, user):
         """Event triggered when a user reacts to a message"""
@@ -257,15 +245,10 @@ class HSBot(discord.Client):
             return
 
         message = reaction.message
-        key = utils.get_key(message)
-        active = self.get_active_panels(key, user.id)
-        for mid in active:
-            if message.id == mid:
-                for t in active[mid].types:
-                    if t in self.reactions:
-                        if any((all((isinstance(message.channel, discord.channel.TextChannel),
-                                     self.reactions[t]["text"])),
-                                all((isinstance(message.channel, discord.channel.DMChannel),
-                                     self.reactions[t]["dm"])))):
-                            if await active[mid].instance.can_interact(self, reaction, user, active[mid]):
-                                await self.reactions[t]["callback"](self, reaction, user, active[mid])
+        key = (message.channel if message.guild is None else message.guild).id
+        
+        if await self.is_active_panel(key, user, message):
+            await self.get_active_panel(key, message).on_reaction(self, reaction, user)
+            
+        for handler in self.reactions:
+            await self.reactions[handler]["callback"](self, reaction, user)

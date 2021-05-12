@@ -4,9 +4,8 @@ import os
 import discord
 
 from choosable import NUMBERS
-from common import CONFIRM, DECLINE, DELETE, Deletable, YesNo
+from panels import DeletableActivePanel, YesNoActivePanel, ScrollableActivePanel
 from jsonembed import json_to_embed
-from scrollable import LEFT, RIGHT, Scrollable
 from utils import basedir
 
 NEW_PROJECT_ARG = "-p"
@@ -14,28 +13,29 @@ PROJECTS_CATEGORY = "PROJECTS"
 MANAGEMENT_ROLES = ("Chefes", "Dev", "RH", "Marketing")
 
 
-class CreateProjectYesNo(YesNo):
-    def __init__(self, project_name, members):
-        super().__init__()
+class CreateProjectYesNo(YesNoActivePanel):
+    def __init__(self, project_name, members, userid=None):
+        super().__init__(userid)
+        self.userid = userid
         self.project_name = project_name
         self.members = members
 
-    async def on_accept(self, client, reaction, user, panel):
+    async def on_accept(self, client, reaction, user):
         channel = reaction.message.channel
         server = reaction.message.channel.guild
         await make_new_project(self.members, self.project_name, channel, server)
-        await client.remove_active_panel(reaction.message, panel.user)
 
-    async def on_delete(self, client, reaction, user, panel):
+    async def on_delete(self, client, reaction, user):
         channel = reaction.message.channel
         msgreff_embed = discord.Embed(color=0x6db977)
         msgreff_embed.title = "New project creation aborted!"
         await channel.send(embed=msgreff_embed)
 
 
-class DeleteProjectYesNo(YesNo):
-    def __init__(self, project_voice_channel, project_text_channel, project_role):
-        super().__init__()
+class DeleteProjectYesNo(YesNoActivePanel):
+    def __init__(self, project_voice_channel, project_text_channel, project_role, userid=None):
+        super().__init__(userid=userid)
+        self.userid = userid
         self.project_voice_channel = project_voice_channel
         self.project_text_channel = project_text_channel
         self.project_role = project_role
@@ -48,15 +48,14 @@ class DeleteProjectYesNo(YesNo):
         if self.project_role is not None:
             await self.project_role.delete()
 
-    async def on_accept(self, client, reaction, user, panel):
+    async def on_accept(self, client, reaction, user):
         channel = reaction.message.channel
         await self.delete_project_data()
-        await client.remove_active_panel(reaction.message, panel.user)
         msg_deletion_success_embed = discord.Embed(
             title="Deletion successful!", description=f"**{self.project_role.name}** removed")
         await channel.send(embed=msg_deletion_success_embed)
 
-    async def on_decline(self, client, reaction, user, panel):
+    async def on_decline(self, client, reaction, user):
         channel = reaction.message.channel
         msgreff_embed = discord.Embed(color=0x6db977)
         msgreff_embed.title = "Project deletion aborted!"
@@ -176,9 +175,7 @@ async def members_from_participants(self, message, participants):
             msg_not_valid_member_embed = discord.Embed(
                 color=0xc23f2b, title="Error", description=f"{participant} is not a valid member!")
             msg_not_valid_member = await message.channel.send(embed=msg_not_valid_member_embed)
-            self.add_active_panel(msg_not_valid_member, message.author, {
-                                  "deletable"}, Deletable())
-            await msg_not_valid_member.add_reaction(DELETE)
+            await self.add_active_panel(msg_not_valid_member, DeletableActivePanel(userid=message.author.id))
     if len(members):
         return members
     else:
@@ -256,7 +253,8 @@ async def make_new_project(members, project_name, output_info_channel, server):
     await output_info_channel.send(embed=msgacc_embed)
 
 
-async def delete_project(project_name, output_info_channel, guild, user_input=False, self=None):
+async def delete_project(project_name, message, user_input=False, self=None):
+    output_info_channel, guild = message.channel, message.guild
     info_str = ""
     projects_category = get_category_named(guild, PROJECTS_CATEGORY)
 
@@ -303,12 +301,11 @@ async def delete_project(project_name, output_info_channel, guild, user_input=Fa
         msg_usr_confirm = await output_info_channel.send(embed=msg_usr_confirm_embed)
 
         yn = DeleteProjectYesNo(project_voice_channel,
-                                project_text_channel, project_role)
+                                project_text_channel, 
+                                project_role,
+                                userid=message.author.id)
 
-        self.add_active_panel(msg_usr_confirm, "all", {"yesno"}, yn)
-
-        await msg_usr_confirm.add_reaction(DECLINE)
-        await msg_usr_confirm.add_reaction(CONFIRM)
+        await self.add_active_panel(msg_usr_confirm, yn)
         return
 
     # If no user input, just delete it
@@ -335,9 +332,8 @@ async def command_project(self, message, args):
             f"• Only affects text/voice channels under **{PROJECTS_CATEGORY}** category\n"
             "**Options**: project1 [project2] ...", inline=False)
         help_msg = await message.channel.send(embed=help_embed)
-        self.add_active_panel(help_msg, message.author, {
-                              "deletable"}, Deletable())
-        await help_msg.add_reaction(DELETE)
+        await self.add_active_panel(help_msg, DeletableActivePanel(userid=message.author.id))
+        
     elif len(args) >= 2:
         if args[0] == "new":
             project_name, *participants = args[1:]
@@ -351,9 +347,7 @@ async def command_project(self, message, args):
                 msg_no_members_embed = discord.Embed(
                     color=0xc23f2b, title="Input Error", description=f"Please provide valid member names.\n Names provided: {participants_str}\n Corresponding server members: {names_str}")
                 msg_no_members = await message.channel.send(embed=msg_no_members_embed)
-                self.add_active_panel(msg_no_members, message.author, {
-                                      "deletable"}, Deletable())
-                await msg_no_members.add_reaction(DELETE)
+                await self.add_active_panel(msg_no_members, DeletableActivePanel(userid=message.author.id))
                 return
             msg_scc_embed = discord.Embed(color=0x99ab65)
             msg_scc_embed.title = "Are you sure?"
@@ -363,31 +357,26 @@ async def command_project(self, message, args):
                                         f"**Participants:** {names_str}"
             msg_scc = await message.channel.send(embed=msg_scc_embed)
 
-            yn = CreateProjectYesNo(project_name, members)
+            yn = CreateProjectYesNo(project_name, members, userid=message.author.id)
 
-            self.add_active_panel(msg_scc, message.author, {"yesno"}, yn)
-
-            await msg_scc.add_reaction(DECLINE)
-            await msg_scc.add_reaction(CONFIRM)
+            await self.add_active_panel(msg_scc, yn)
+            
         elif args[0] == "delete":
             if len(args) >= 2:
                 projects_to_delete = args[1:]
 
                 for project in projects_to_delete:
-                    await delete_project(project, message.channel, message.guild, user_input=True, self=self)
+                    await delete_project(project, message, user_input=True, self=self)
         else:
             msg_unrecognized_embed = discord.Embed(color=0x99ab65)
             msg_unrecognized_embed.title = "Unrecognized option!\n"
             msg_unrecognized_embed.description = f"Try \"**{self.prefix}project**\" for more information"
             msg_unrecognized = await message.channel.send(embed=msg_unrecognized_embed)
-            self.add_active_panel(msg_unrecognized, "all", {
-                                  "deletable"}, Deletable())
+            self.add_active_panel(msg_unrecognized, DeletableActivePanel(userid=message.author.id))
 
     else:
         msg_err_embed = discord.Embed(color=0xfcba03)
         msg_err_embed.title = "Improper command usage"
         msg_err_embed.description = f"{self.prefix}project for more information"
         msgerr = await message.channel.send(embed=msg_err_embed)
-        self.add_active_panel(msgerr, message.author, {
-                              "deletable"}, Deletable())
-        await msgerr.add_reaction(DELETE)
+        self.add_active_panel(msgerr, DeletableActivePanel(userid=message.author.id))
