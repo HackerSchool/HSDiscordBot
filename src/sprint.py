@@ -64,33 +64,24 @@ def send_files(file_name, folder_name):
     Sends file to google drive folder
     Returns: 
         -True if successful
-        -False if unsuccessful
+        -False if unsuccessful AT THE MOMENT ALWAYS RETURNS TRUE - FOLDERS NOT WORKING
     """
     gauth = GoogleAuth()
-    # Try to load saved client credentials
-    gauth.LoadCredentialsFile("credentials")
-    if gauth.credentials is None:
-        # Authenticate if they're not there
-        gauth.LocalWebserverAuth()
-    elif gauth.access_token_expired:
-        # Refresh them if expired
-        gauth.Refresh()
-    else:
-        # Initialize the saved creds
-        gauth.Authorize()
-    # Save the current credentials to a file
-    gauth.SaveCredentialsFile("credentials")
     drive = GoogleDrive(gauth)
+    gfile = drive.CreateFile({'title': file_name})
+    #gfile.SetContentFile(file_name)
+    gfile.Upload()
+    return True
+    #folders = drive.ListFile(
+    #    {'q': "title='" + folder_name + "' and mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
+    #for folder in folders:
+    #    if folder['title'] == folder_name:
+    #        
+    #        gfile = drive.CreateFile({'title': file_name, 'parents': [{'id': folder['id']}]})
+    #        gfile.SetContentFile(file_name)
+    #        gfile.Upload()
+    #        return True
 
-    folders = drive.ListFile(
-        {'q': "title='" + folder_name + "' and mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
-    for folder in folders:
-        if folder['title'] == folder_name:
-            gfile = drive.CreateFile({'parents': [{'id': folder['id']}]})
-            gfile.SetContentFile(file_name)
-            gfile.Upload()
-            return True
-    return False
 
 
 async def handler_sprint(self, message):
