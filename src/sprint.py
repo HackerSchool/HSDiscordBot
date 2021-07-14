@@ -61,26 +61,25 @@ async def download_file(url, path):
 
 def send_files(file_name, folder_name):
     """
-    Sends file to google drive folder
+    Sends file to google drive folder, assuming first two characters in file name are '.\'
     Returns: 
         -True if successful
-        -False if unsuccessful AT THE MOMENT ALWAYS RETURNS TRUE - FOLDERS NOT WORKING
+        -False if unsuccessful
     """
     gauth = GoogleAuth()
     drive = GoogleDrive(gauth)
     gfile = drive.CreateFile({'title': file_name})
-    #gfile.SetContentFile(file_name)
-    gfile.Upload()
-    return True
-    #folders = drive.ListFile(
-    #    {'q': "title='" + folder_name + "' and mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
-    #for folder in folders:
-    #    if folder['title'] == folder_name:
-    #        
-    #        gfile = drive.CreateFile({'title': file_name, 'parents': [{'id': folder['id']}]})
-    #        gfile.SetContentFile(file_name)
-    #        gfile.Upload()
-    #        return True
+
+    folders = drive.ListFile(
+        {'q': "title='" + folder_name + "' and mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
+    for folder in folders:
+        if folder['title'].lower() == folder_name.lower():
+            
+            gfile = drive.CreateFile({'title': file_name[2:], 'parents': [{'id': folder['id']}]})
+            gfile.SetContentFile(file_name)
+            gfile.Upload()
+            return True
+    return False
 
 
 
