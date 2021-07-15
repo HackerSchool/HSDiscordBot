@@ -8,6 +8,10 @@ from panels import DeletableActivePanel, YesNoActivePanel, ScrollableActivePanel
 from jsonembed import json_to_embed
 from utils import basedir
 
+# google drive folder creation and deletion
+from pydrive.auth import GoogleAuth     
+from pydrive.drive import GoogleDrive
+
 NEW_PROJECT_ARG = "-p"
 PROJECTS_CATEGORY = "PROJECTS"
 MANAGEMENT_ROLES = ("Chefes", "Dev", "RH", "Marketing")
@@ -24,12 +28,14 @@ class CreateProjectYesNo(YesNoActivePanel):
         channel = reaction.message.channel
         server = reaction.message.channel.guild
         await make_new_project(self.members, self.project_name, channel, server)
+        await reaction.message.clear_reactions()
 
     async def on_delete(self, client, reaction, user):
         channel = reaction.message.channel
         msgreff_embed = discord.Embed(color=0x6db977)
         msgreff_embed.title = "New project creation aborted!"
         await channel.send(embed=msgreff_embed)
+        await reaction.message.clear_reactions()
 
 
 class DeleteProjectYesNo(YesNoActivePanel):
@@ -54,6 +60,7 @@ class DeleteProjectYesNo(YesNoActivePanel):
         msg_deletion_success_embed = discord.Embed(
             title="Deletion successful!", description=f"**{self.project_role.name}** removed")
         await channel.send(embed=msg_deletion_success_embed)
+        await reaction.message.clear_reactions()
 
     async def on_decline(self, client, reaction, user):
         channel = reaction.message.channel
@@ -61,6 +68,7 @@ class DeleteProjectYesNo(YesNoActivePanel):
         msgreff_embed.title = "Project deletion aborted!"
         msgreff_embed.description = f"**{self.project_name} was untouched"
         await channel.send(embed=msgreff_embed)
+        await reaction.message.clear_reactions()
 
 
 def get_room_embed(self):
@@ -230,6 +238,16 @@ async def make_new_project(members, project_name, output_info_channel, server):
         project_text_channel = existent_text_channel
         info_str = info_str + "Used previously created project text channel\n"
 
+    # create new google drive folder with "project_name" as its name if none exists
+    gauth = GoogleAuth()
+    drive = GoogleDrive(gauth)
+    if gdrive_folder_exists(project_name, drive):
+        info_str = info_str + "Used previously created project google drive folder for project\n"
+    else:
+        folder = drive.CreateFile({'title' : project_name, 'mimeType' : 'application/vnd.google-apps.folder'})
+        folder.Upload()
+        info_str = info_str + "Created project google drive folder for project\n"
+
     # If the project already exists, let the user know
     if existent_text_channel is not None and existent_voice_channel is not None and existent_role is not None:
         msg_duplicate_embed = discord.Embed(
@@ -252,7 +270,15 @@ async def make_new_project(members, project_name, output_info_channel, server):
         (enum_prefix+info_str).splitlines(True))
     await output_info_channel.send(embed=msgacc_embed)
 
-
+def gdrive_folder_exists(folder_name, drive):
+    # Checks if there's a folder with similar name in a given google drive
+    folders = drive.ListFile(
+        {'q': "mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
+    for folder in folders:
+        if folder['title'].lower() == folder_name.lower():
+            return True
+    return False
+            
 async def delete_project(project_name, message, user_input=False, self=None):
     output_info_channel, guild = message.channel, message.guild
     info_str = ""
