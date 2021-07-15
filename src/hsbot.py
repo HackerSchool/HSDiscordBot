@@ -29,4 +29,5 @@ if __name__ == "__main__":
 
     hsbot = client.HSBot(prefix)
     setup(hsbot)
+    sprint.setup(hsbot)
     hsbot.run(token)

@@ -196,16 +196,17 @@ async def handler_attachment(self, message):
 
 
 
-@client.event
-async def on_member_join(member):
-    open(name_pairs_file,"a+")
-    try:
-        known_pairs = pickle.load(open(name_pairs_file,"rb"))
-    except EOFError:
-        known_pairs = []
+def add_member_name_change(client):
+    @client.event
+    async def on_member_join(member):
+        open(name_pairs_file,"a+")
+        try:
+            known_pairs = pickle.load(open(name_pairs_file,"rb"))
+        except EOFError:
+            known_pairs = []
 
-    for pair in known_pairs:
-        if pair[0] == str(member):
-            await member.edit(nick = pair[1], reason="Name pair present in given file")
-            return
+        for pair in known_pairs:
+            if pair[0] == str(member):
+                await member.edit(nick = pair[1], reason="Name pair present in given file")
+                return
 
