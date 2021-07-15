@@ -7,6 +7,7 @@ from pydrive.drive import GoogleDrive
 
 from panels import YesNoActivePanel
 
+from utils import PROJECTS_CATEGORY
 
 class CollectYesNo(YesNoActivePanel):
     def __init__(self, attachment, userid=None):
@@ -18,8 +19,9 @@ class CollectYesNo(YesNoActivePanel):
         result = await download_file(self.attachment.url, name)
 
         content = reaction.message.content
+        project_name = reaction.message.channel.name
         if result:
-            if send_files(name, "Test"):
+            if send_files(name, project_name):
                 embed = discord.Embed(title="Success!", color=0x6db977)
                 embed.description = "Downloaded sprint report"
             else:
@@ -87,6 +89,11 @@ async def handler_sprint(self, message):
     """Used when a file is sent to a channel"""
     for attachment in message.attachments:
         if "sprint" in attachment.filename.lower():
-            msg = await self.send_info(message.channel, f"Should I capture '{attachment.filename}' as a sprint report?")
-            yn = CollectYesNo(attachment, userid=message.author.id)
-            await self.add_active_panel(msg, yn)
+            if message.channel.category.name.lower() == PROJECTS_CATEGORY.lower():
+                msg = await self.send_info(message.channel, f"Should I capture '{attachment.filename}' as a sprint report?")
+                yn = CollectYesNo(attachment, userid=message.author.id)
+                await self.add_active_panel(msg, yn)
+            else:
+                await self.send_info(message.channel, f"If you mean to register '{attachment.filename}' as a sprint report, "
+                                                       "you need to send it through your project's text channel, which should "
+                                                      f"be under {PROJECTS_CATEGORY} category!")

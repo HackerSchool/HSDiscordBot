@@ -1,5 +1,6 @@
 import os
 
+PROJECTS_CATEGORY = "PROJECTS"
 
 def basedir(f):
     return os.path.abspath(os.path.join(f, os.pardir))

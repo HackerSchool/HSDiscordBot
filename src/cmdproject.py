@@ -6,14 +6,13 @@ import discord
 from choosable import NUMBERS
 from panels import DeletableActivePanel, YesNoActivePanel, ScrollableActivePanel
 from jsonembed import json_to_embed
-from utils import basedir
+from utils import basedir, PROJECTS_CATEGORY
 
 # google drive folder creation and deletion
 from pydrive.auth import GoogleAuth     
 from pydrive.drive import GoogleDrive
 
 NEW_PROJECT_ARG = "-p"
-PROJECTS_CATEGORY = "PROJECTS"
 MANAGEMENT_ROLES = ("Chefes", "Dev", "RH", "Marketing")
 
 
@@ -77,7 +76,6 @@ async def del_proj_data(project_voice_channel, project_text_channel, project_rol
     if project_folder is not None:
         project_folder['title'] = project_folder['title'] + '-CLOSED'
         project_folder.Upload()
-        print(project_folder['title'])
 
 
 def get_room_embed(self):
@@ -126,7 +124,7 @@ def get_text_channel_named(category, name):
 
 def get_category_named(guild, name):
     """
-    If a role with a given name exists, it is returned, otherwise return None
+    If a category with a given name exists, it is returned, otherwise return None
     """
     for category in guild.categories:
         if category.name == name:
@@ -362,7 +360,7 @@ async def command_project(self, message, args):
                                    )
         help_embed.add_field(
             name="new", value="**Description**: Creates new project.\n"
-            "• Creates one role, one voice channel and one text channel named \"project_name\"\n"
+            "• Creates one role, one voice channel, one text channel and corresponding google drive folder named \"project_name\"\n"
             "• Assigns role to participants\n"
             "• Assigns channel managing permissions to management roles, and viewing permission only to participants\n"
             f"• Channels created under **{PROJECTS_CATEGORY}** category\n"
@@ -392,7 +390,7 @@ async def command_project(self, message, args):
                 return
             msg_scc_embed = discord.Embed(color=0x99ab65)
             msg_scc_embed.title = "Are you sure?"
-            msg_scc_embed.description = f"This action will create one role, one voice channel and one text channel!\n" \
+            msg_scc_embed.description = f"This action will create one role, one voice channel, one text channel and a corresponding google drive folder!\n" \
                                         f"Both channels will only be visible for the project members and management\n" \
                                         f"**Project name:** {project_name}\n"\
                                         f"**Participants:** {names_str}"
