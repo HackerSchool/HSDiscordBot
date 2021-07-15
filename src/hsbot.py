@@ -14,7 +14,7 @@ def setup(client):
     client.add_command("event", cmdevent.command_event)
     client.add_command("project", cmdproject.command_project)
 
-    client.add_custom_message_handler("sprint", sprint.handler_sprint)
+    client.add_custom_message_handler("sprint", sprint.handler_attachment)
 
 
 if __name__ == "__main__":

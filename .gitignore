@@ -9,3 +9,4 @@ credentials
 client_secrets.json
 settings.yml
 src/credentials.json
+*.pkl
