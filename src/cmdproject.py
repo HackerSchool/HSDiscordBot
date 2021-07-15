@@ -47,12 +47,7 @@ class DeleteProjectYesNo(YesNoActivePanel):
         self.project_role = project_role
 
     async def delete_project_data(self):
-        if self.project_voice_channel is not None:
-            await self.project_voice_channel.delete()
-        if self.project_text_channel is not None:
-            await self.project_text_channel.delete()
-        if self.project_role is not None:
-            await self.project_role.delete()
+        await del_proj_data(self.project_voice_channel, self.project_text_channel, self.project_role)
 
     async def on_accept(self, client, reaction, user):
         channel = reaction.message.channel
@@ -70,6 +65,13 @@ class DeleteProjectYesNo(YesNoActivePanel):
         await channel.send(embed=msgreff_embed)
         await reaction.message.clear_reactions()
 
+async def del_proj_data(project_voice_channel, project_text_channel, project_role):
+    if project_voice_channel is not None:
+        await project_voice_channel.delete()
+    if project_text_channel is not None:
+        await project_text_channel.delete()
+    if project_role is not None:
+        await project_role.delete()
 
 def get_room_embed(self):
     PAGES = 1
@@ -96,21 +98,21 @@ async def on_choose(self, reaction, user, panel, index):
 
 def get_role_named(guild, name):
     for role in guild.roles:
-        if role.name == name:
+        if role.name.lower() == name.lower():
             return role
     return None
 
 
 def get_voice_channel_named(category, name):
     for channel in category.voice_channels:
-        if channel.name == name:
+        if channel.name.lower() == name.lower():
             return channel
     return None
 
 
 def get_text_channel_named(category, name):
     for channel in category.text_channels:
-        if channel.name == name.lower():
+        if channel.name.lower() == name.lower():
             return channel
     return None
 
@@ -333,9 +335,9 @@ async def delete_project(project_name, message, user_input=False, self=None):
 
         await self.add_active_panel(msg_usr_confirm, yn)
         return
-
     # If no user input, just delete it
-    await delete_project_data(project_voice_channel, project_text_channel, project_role)
+    else:
+        await del_proj_data(project_voice_channel, project_text_channel, project_role)
 
 
 async def command_project(self, message, args):
