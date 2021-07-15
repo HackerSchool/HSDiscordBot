@@ -39,15 +39,16 @@ class CreateProjectYesNo(YesNoActivePanel):
 
 
 class DeleteProjectYesNo(YesNoActivePanel):
-    def __init__(self, project_voice_channel, project_text_channel, project_role, userid=None):
+    def __init__(self, project_voice_channel, project_text_channel, project_role, project_folder, userid=None):
         super().__init__(userid=userid)
         self.userid = userid
         self.project_voice_channel = project_voice_channel
         self.project_text_channel = project_text_channel
         self.project_role = project_role
+        self.project_folder = project_folder
 
     async def delete_project_data(self):
-        await del_proj_data(self.project_voice_channel, self.project_text_channel, self.project_role)
+        await del_proj_data(self.project_voice_channel, self.project_text_channel, self.project_role, self.project_folder)
 
     async def on_accept(self, client, reaction, user):
         channel = reaction.message.channel
@@ -65,13 +66,19 @@ class DeleteProjectYesNo(YesNoActivePanel):
         await channel.send(embed=msgreff_embed)
         await reaction.message.clear_reactions()
 
-async def del_proj_data(project_voice_channel, project_text_channel, project_role):
+async def del_proj_data(project_voice_channel, project_text_channel, project_role, project_folder):
     if project_voice_channel is not None:
         await project_voice_channel.delete()
     if project_text_channel is not None:
         await project_text_channel.delete()
     if project_role is not None:
         await project_role.delete()
+
+    if project_folder is not None:
+        project_folder['title'] = project_folder['title'] + '-CLOSED'
+        project_folder.Upload()
+        print(project_folder['title'])
+
 
 def get_room_embed(self):
     PAGES = 1
@@ -126,6 +133,16 @@ def get_category_named(guild, name):
             return category
     return None
 
+def get_gdrive_folder_named(folder_name):
+    # Checks if there's a folder with similar name in google drive
+    gauth = GoogleAuth()
+    drive = GoogleDrive(gauth)
+    folders = drive.ListFile(
+        {'q': "mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
+    for folder in folders:
+        if folder['title'].lower() == folder_name.lower():
+            return folder
+    return None
 
 async def get_category_named_or_create(guild, name):
     """
@@ -243,12 +260,12 @@ async def make_new_project(members, project_name, output_info_channel, server):
     # create new google drive folder with "project_name" as its name if none exists
     gauth = GoogleAuth()
     drive = GoogleDrive(gauth)
-    if gdrive_folder_exists(project_name, drive):
-        info_str = info_str + "Used previously created project google drive folder for project\n"
-    else:
+    if get_gdrive_folder_named(project_name) is None:
         folder = drive.CreateFile({'title' : project_name, 'mimeType' : 'application/vnd.google-apps.folder'})
         folder.Upload()
         info_str = info_str + "Created project google drive folder for project\n"
+    else:
+        info_str = info_str + "Used previously created project google drive folder for project\n"
 
     # If the project already exists, let the user know
     if existent_text_channel is not None and existent_voice_channel is not None and existent_role is not None:
@@ -271,15 +288,6 @@ async def make_new_project(members, project_name, output_info_channel, server):
     msgacc_embed.description = enum_prefix.join(
         (enum_prefix+info_str).splitlines(True))
     await output_info_channel.send(embed=msgacc_embed)
-
-def gdrive_folder_exists(folder_name, drive):
-    # Checks if there's a folder with similar name in a given google drive
-    folders = drive.ListFile(
-        {'q': "mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
-    for folder in folders:
-        if folder['title'].lower() == folder_name.lower():
-            return True
-    return False
             
 async def delete_project(project_name, message, user_input=False, self=None):
     output_info_channel, guild = message.channel, message.guild
@@ -287,11 +295,10 @@ async def delete_project(project_name, message, user_input=False, self=None):
     projects_category = get_category_named(guild, PROJECTS_CATEGORY)
 
     # Gather all project data
-    project_voice_channel = get_voice_channel_named(
-        projects_category, project_name)
-    project_text_channel = get_text_channel_named(
-        projects_category, project_name)
+    project_voice_channel = get_voice_channel_named(projects_category, project_name)
+    project_text_channel = get_text_channel_named(projects_category, project_name)
     project_role = get_role_named(guild, project_name)
+    project_folder = get_gdrive_folder_named(project_name)
 
     if user_input:
         # Fill info string for display
@@ -309,6 +316,11 @@ async def delete_project(project_name, message, user_input=False, self=None):
             info_str = info_str + "No project role detected\n"
         else:
             info_str = info_str + "Project role detected and will be deleted\n"
+
+        if project_folder is None:
+            info_str = info_str + "No Google Drive project folder detected"
+        else:
+            info_str = info_str + "Google Drive project folder detected and will be marked as CLOSED\n"
 
         if project_voice_channel is None and project_text_channel is None and project_role is None:
             msg_usr_none_embed = discord.Embed(color=0x99ab65)
@@ -331,13 +343,14 @@ async def delete_project(project_name, message, user_input=False, self=None):
         yn = DeleteProjectYesNo(project_voice_channel,
                                 project_text_channel, 
                                 project_role,
+                                project_folder,
                                 userid=message.author.id)
 
         await self.add_active_panel(msg_usr_confirm, yn)
         return
     # If no user input, just delete it
     else:
-        await del_proj_data(project_voice_channel, project_text_channel, project_role)
+        await del_proj_data(project_voice_channel, project_text_channel, project_role, project_folder)
 
 
 async def command_project(self, message, args):
