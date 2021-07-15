@@ -15,6 +15,7 @@ def setup(client):
     client.add_command("project", cmdproject.command_project)
 
     client.add_custom_message_handler("sprint", sprint.handler_attachment)
+    sprint.add_member_name_change(client)
 
 
 if __name__ == "__main__":
