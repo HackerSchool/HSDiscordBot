@@ -85,10 +85,6 @@ async def store_new_pairs(new_pair_name, channel):
     except EOFError:
         known_pairs = []
 
-    print("before transformation: \n")
-    print(known_pairs)
-    print(new_pairs)
-
     # append newly created name pairs -     
             # if a source username is present more than once, discard one
             # if a destination username is present more than once, do nothing
@@ -99,10 +95,6 @@ async def store_new_pairs(new_pair_name, channel):
         if kpair1[0] == kpair2[0]:
             kpair1[1] = kpair2[1]
             known_pairs.remove(kpair1)
-
-    print("after transformation: \n")
-    print(known_pairs)
-    print(new_pairs)
 
     # if any aren't valid discord usernames with discriminator, send warning message with those names
     invalid_pairs = []

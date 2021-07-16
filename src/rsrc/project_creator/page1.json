@@ -1,0 +1,11 @@
+{
+    "title": "Project Creator",
+    "color": 7190903,
+    "fields": [
+        {
+            "name": "Project Name",
+            "value": "",
+            "inline": false
+        }
+    ]
+}
