@@ -34,7 +34,7 @@ class CreateProjectYesNo(YesNoActivePanel):
         if self.dm == False:
             await reaction.message.clear_reactions()
 
-    async def on_delete(self, client, reaction, user):
+    async def on_decline(self, client, reaction, user):
         channel = reaction.message.channel
         msgreff_embed = discord.Embed(color=0x6db977)
         msgreff_embed.title = "New project creation aborted!"
@@ -148,16 +148,6 @@ def get_gdrive_folder_named(folder_name):
             return folder
     return None
 
-async def get_category_named_or_create(guild, name):
-    """
-    If a role with a given name exists, it is returned, otherwise create one
-    """
-    category = get_category_named(guild, name)
-    if category is not None:
-        return category
-    return await guild.create_category_channel(name=name, reason="Added at project creation because none existed")
-
-
 def member_from_participant(self, guild, participant):
     def verify(member):
         #logging.info((participant, member.display_name))
@@ -224,6 +214,13 @@ async def make_new_project(members, project_name, output_info_channel, server):
     # Useful information to show the user
     info_str = ""
 
+    # Check if project role exists, if not, create it
+    projects_category = get_category_named(server, PROJECTS_CATEGORY)
+    if projects_category is None:
+        info_str = info_str + "Project category did not exist so one was created\n"
+        projects_category = await server.create_category_channel(name=PROJECTS_CATEGORY, reason="Added at project creation because none existed")
+        print(projects_category.name)
+    
     # Check if project role exists, if so, use it
     existent_role = get_role_named(server, project_name)
     if existent_role is None:
@@ -232,8 +229,6 @@ async def make_new_project(members, project_name, output_info_channel, server):
     else:
         project_role = existent_role
         info_str = info_str + "Used previously created project role\n"
-
-    projects_category = await get_category_named_or_create(server, PROJECTS_CATEGORY)
 
     overwrites = {
         server.default_role: discord.PermissionOverwrite(read_messages=False),
