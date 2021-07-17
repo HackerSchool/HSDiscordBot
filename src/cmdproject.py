@@ -108,6 +108,9 @@ async def on_choose(self, reaction, user, panel, index):
 
 
 def get_role_named(guild, name):
+    """
+    If a role with a given name exists, it is returned, otherwise return None
+    """
     for role in guild.roles:
         if role.name.lower() == name.lower():
             return role
@@ -115,6 +118,9 @@ def get_role_named(guild, name):
 
 
 def get_voice_channel_named(category, name):
+    """
+    If a voice channel with a given name exists, it is returned, otherwise return None
+    """
     for channel in category.voice_channels:
         if channel.name.lower() == name.lower():
             return channel
@@ -122,6 +128,9 @@ def get_voice_channel_named(category, name):
 
 
 def get_text_channel_named(category, name):
+    """
+    If a text channel with a given name exists, it is returned, otherwise return None
+    """
     for channel in category.text_channels:
         if channel.name.lower() == name.lower():
             return channel
@@ -138,7 +147,9 @@ def get_category_named(guild, name):
     return None
 
 def get_gdrive_folder_named(folder_name):
-    # Checks if there's a folder with similar name in google drive
+    """
+    If a google drive folder with a given name exists in the bot's account, it is returned, otherwise return None
+    """
     gauth = GoogleAuth()
     drive = GoogleDrive(gauth)
     folders = drive.ListFile(
@@ -150,10 +161,8 @@ def get_gdrive_folder_named(folder_name):
 
 def member_from_participant(self, guild, participant):
     def verify(member):
-        #logging.info((participant, member.display_name))
         return participant.lower() in member.name.lower()
 
-    #logging.info((participant, message.guild.members))
     valid_members = tuple(filter(
         verify,
         guild.members
