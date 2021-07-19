@@ -130,7 +130,7 @@ def get_gdrive_folder_named(folder_name):
             return folder
     return None
 
-def member_from_participant(self, guild, participant):
+def member_from_participant(guild, participant):
     def verify(member):
         return participant.lower() in member.name.lower()
 
@@ -166,7 +166,7 @@ def did_you_mean_project(guild, failed_name):
 async def members_from_participants(self, guild, info_channel, participants):
     members = []
     for participant in participants:
-        new_member = member_from_participant(self, guild, participant)
+        new_member = member_from_participant(guild, participant)
         if new_member is not None:
             members.append(new_member)
         else:
@@ -254,24 +254,28 @@ async def make_new_project(members, project_name, output_info_channel, server):
 
     if members is None or len(members) == 0:
         info_str = info_str + "This project contains no members. Add them by assigning them the newly created project role\n"
+    else:
+        names = list(member.display_name for member in members)
+        names_str = ", ".join(names)
+        info_str = info_str + names_str
 
     # If the project already exists, let the user know
     if existent_text_channel is not None and existent_voice_channel is not None and existent_role is not None and existent_gdrive_folder is not None:
         if members is None or len(members) == 0:
             msg_duplicate_embed = discord.Embed(
-                color=WARNING_COLOR, title="Project already exists!", description="Nothing was done")
+                color=WARNING_COLOR, title="Project '{project_name}' already exists!", description=f"Nothing was done.")
             await output_info_channel.send(embed=msg_duplicate_embed)
             return
         else:
             msg_duplicate_embed = discord.Embed(
-                color=WARNING_COLOR, title="Project already exists!", description="Only assigned new members")
+                color=WARNING_COLOR, title="Project '{project_name}' already exists!", description="Only assigned new members")
             await output_info_channel.send(embed=msg_duplicate_embed)
             just_add_members = True
 
     # Assign project members their role
     if members is not None:
         for member in members:
-            await member.add_roles(project_role, reason="Project Added")
+            await member.add_roles(project_role, reason="Project '{project_name}' Added")
 
     if just_add_members == True:
         return
