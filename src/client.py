@@ -11,11 +11,11 @@ from discord.ext import tasks
 async def task_worker(self):
     past = []
     for task in self.tasks:
-        if task["start"] >= datetime.datetime.now():
+        if task["start"] <= datetime.datetime.now():
             await task["callback"](self)
             if task["once"] == True:
                 past.append(task)
-            elif task["end"] >= datetime.datetime.now():
+            elif task["end"] <= datetime.datetime.now():
                 past.append(task)
     for task in past:
         self.tasks.remove(task)
@@ -128,7 +128,7 @@ class HSBot(discord.Client):
             "timestamp": time.time(), 
             "timeout": timeout
         }
-        await panel.init(message)
+        await panel.init(self, message)
 
     async def remove_active_panel(self, message, remove_reactions:bool=True):
         """Remove an active panel"""

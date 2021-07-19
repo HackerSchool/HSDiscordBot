@@ -11,10 +11,10 @@ class HelpScrollable(ActivePanel):
         self.dap = DeletableActivePanel(userid=userid)
         self.sap = ScrollableActivePanel(self.on_page_change, pages, userid=userid)
         
-    async def init(self, message):
+    async def init(self, client, message):
         self.message = message
-        await self.dap.init(message)
-        await self.sap.init(message)
+        await self.dap.init(client, message)
+        await self.sap.init(client, message)
 
     async def on_page_change(self, scrollable):
         path = os.path.join(basedir(__file__), "rsrc",

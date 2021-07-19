@@ -36,14 +36,14 @@ class EventCreator(ActivePanel):
         self.event_description = None
         self.event_start = None
         self.event_duration = None
-        self.event_repeat = None
+        self.event_repeat = "Never"
         self.role_mentions = ()
         
-    async def init(self, message):
+    async def init(self, client, message):
         self.message = message
-        await self.dap.init(message)
-        await self.iap.init(message)
-        await self.sap.init(message)
+        await self.dap.init(client, message)
+        await self.iap.init(client, message)
+        await self.sap.init(client, message)
         
     async def on_reaction(self, client, reaction, user):
         await self.dap.on_reaction(client, reaction, user)
@@ -82,6 +82,9 @@ class EventCreator(ActivePanel):
                 value = ", ".join(map(lambda r: r.name, self.role_mentions))
             else:
                 value = "None"
+                
+        elif scrollable.page == 6:
+            value = self.event_repeat
 
         base.set_field_at(0, name=base.fields[0].name, value=value)
 
@@ -143,6 +146,12 @@ class EventCreator(ActivePanel):
             ))
             self.role_mentions = valid_roles
             await self.message.edit(embed=await self.sap.page_func())
+            
+        elif self.sap.page == 6:
+            repeat = self.parse_repeat(message.content)
+            if repeat is not None:
+                self.event_repeat = repeat
+                await self.message.edit(embed=await self.sap.page_func())
 
     async def on_accept(self, yn, client, reaction, user):
         if self.event_name is not None and self.event_start is not None:
@@ -151,6 +160,7 @@ class EventCreator(ActivePanel):
                 self.event_description,
                 self.event_start,
                 self.event_duration,
+                self.event_repeat,
                 self.author,
                 self.role_mentions,
                 userid=self.userid
@@ -159,8 +169,9 @@ class EventCreator(ActivePanel):
             mentions = " ".join(map(lambda r: r.mention, self.role_mentions))
             msg = await self.selected_channel.send(mentions, embed=embed)
             event.message = msg
-
-            await client.add_active_panel(msg, event)
+            duration = (self.event_start - datetime.datetime.now() + self.event_duration).total_seconds() / 60 + 10
+            logging.info(duration)
+            await client.add_active_panel(msg, event, duration)
         else:
             await client.send_error(yn.message.channel, "Not all required fields are filled out")
 
@@ -193,6 +204,21 @@ class EventCreator(ActivePanel):
                 else:
                     minutes = int(minutes)
                 return datetime.timedelta(hours=hours, minutes=minutes)
+        return None
+    
+    @staticmethod
+    def parse_repeat(string):
+        string = string.strip().lower()
+        if string == "daily" or string == "1":
+            return "Daily"
+        elif string == "weekly" or string == "2":
+            return "Weekly"
+        elif string == "monthly" or string == "3":
+            return "Monthly"
+        elif string == "monthly by weekday" or string == "4":
+            return "Monthly (by weekday)"
+        elif string == "never" or string == "5":
+            return "Never"
         return None
 
     @staticmethod
@@ -249,7 +275,7 @@ async def command_event(self, message, args):
         msg = await channel.fetch_message(panel.message.id)
         await self.remove_active_panel(msg)
 
-    creator = EventCreator(message.channel, 6, message.author.id)
+    creator = EventCreator(message.channel, 7, message.author.id)
     msg = await channel.send(embed=await creator.sap.page_func())
     creator.message = msg
     creator.author = message.author

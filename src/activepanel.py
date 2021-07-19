@@ -15,7 +15,7 @@ class ActivePanel:
     async def on_deactivate(self, client):
         pass
     
-    async def init(self, message):
+    async def init(self, client, message):
         self.message = message
     
     async def can_interact(self, client, user):

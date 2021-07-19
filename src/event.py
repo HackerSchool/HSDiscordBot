@@ -1,21 +1,27 @@
+import datetime
 import discord
+import logging
+import traceback
 
 from activepanel import ActivePanel
 from panels import DELETE
 
 ACCEPT, DECLINE, TENTATIVE = "✅", "❌", "❓"
+WEEKDAYS = ("monday", "tuesday", "wednesday",
+            "thursday", "friday", "saturday", "sunday")
 
 
 class Event(ActivePanel):
     MAX_ELEMENT_DISPLAY = 20
 
-    def __init__(self, name, description, start, duration, author, roles, delete_emoji=DELETE, userid=None):
+    def __init__(self, name, description, start, duration, repeat, author, roles, delete_emoji=DELETE, userid=None):
         self.userid = userid
         self.message = None
         self.name = name
         self.description = description
         self.start = start
         self.duration = duration
+        self.repeat = repeat
         self.author = author
         self.roles = roles
         self.accepted = []
@@ -30,11 +36,51 @@ class Event(ActivePanel):
                 return True
         return await super().can_interact(client, user)
         
-    async def init(self, message):
+    async def init(self, client, message):
+        self.message = message
+        for role in self.roles:
+            for user in role.members:
+                if user not in self.declined:
+                    self.declined.append(user)
         await self.message.add_reaction(self.delete_emoji)
         await self.message.add_reaction(ACCEPT)
         await self.message.add_reaction(DECLINE)
         await self.message.add_reaction(TENTATIVE)
+        await self.update_page()
+        
+        if self.repeat:
+            async def task(client):
+                logging.info("Activating event repetition")
+                try:
+                    await client.remove_active_panel(message)
+                except Exception:
+                    logging.info(traceback.format_exc())
+                    logging.info("Canceled by user")
+                    return
+                new_msg = await self.message.channel.send(content=self.message.content, embed=self.message.embeds[0]) 
+                if self.repeat == "Daily":
+                    self.start += datetime.timedelta(days=1)
+                elif self.repeat == "Weekly":
+                    self.start += datetime.timedelta(weeks=1)
+                elif self.repeat == "Monthly":
+                    d = self.start.day
+                    while True:
+                        try:
+                            if self.start.month != 12:
+                                self.start = self.start.replace(month=self.start.month+1)
+                            else:
+                                self.start = self.start.replace(year=self.start.year+1, month=1, day=d)
+                            break
+                        except ValueError:
+                            d -= 1
+                self.accepted, self.declined, self.tentative = [], [], []
+                await client.add_active_panel(new_msg, self)     
+                logging.info("Done")
+            
+            stime = self.start + datetime.timedelta(minutes=5)
+            if self.duration is not None:
+                stime += self.duration
+            client.schedule(stime, stime, task)
 
     async def update_page(self):
         mentions = " ".join(map(lambda r: r.mention, self.roles))
@@ -42,7 +88,7 @@ class Event(ActivePanel):
         await self.message.edit(content=mentions, embed=embed)
 
     def get_embed(self):
-        start = self.start.strftime("%a %b %d, %Y ⋅ %I%p")
+        start = self.start.strftime("%a %b %d, %Y ⋅ %I:%M%p")
         if self.duration is not None:
             duration = str(self.duration) + "h"
         else:
@@ -55,6 +101,9 @@ class Event(ActivePanel):
         embed.color = 0x6db977
         embed.add_field(name="Start Time & Duration",
                         value=start+"\n"+duration, inline=False)
+        if self.repeat != "Never":
+            embed.add_field(name="Repeats", value=get_repeat(self.repeat, self.start), inline=False)
+        
         embed.add_field(
             name=f"✅ Accepted ({len(self.accepted)})", value="-", inline=True)
         embed.add_field(
@@ -63,7 +112,7 @@ class Event(ActivePanel):
             name=f"❓ Tentative ({len(self.tentative)})", value="-", inline=True)
         embed.set_footer(text=f"Created by {self.author.display_name}")
 
-        c = 1
+        c = 2 if self.repeat != "Never" else 1
         for field in ("accepted", "declined", "tentative"):
             l = getattr(self, field)
             if len(l) != 0:
@@ -128,3 +177,30 @@ class Event(ActivePanel):
             elif str(reaction.emoji) == TENTATIVE:
                 await self.on_tentative(self, reaction, user)
                 await reaction.remove(user)
+
+
+def get_ending(i):
+    if i % 10 == 1 and i != 11:
+        return "st"
+    if i % 10 == 2 and i != 12:
+        return "nd"
+    if i % 10 == 3 and i != 13:
+        return "rd"
+    return "th"
+
+def get_weekday_count(date):
+    m = datetime.date(date.year, date.month, 1)
+    return (date.day - m.day) // 7 + 1
+
+def get_repeat(string, start):
+    if string == "Daily":
+        return "Every day"
+    elif string == "Weekly":
+        return f"Every {WEEKDAYS[start.weekday()]}"
+    elif string == "Monthly":
+        return f"On the {start.day}{get_ending(start.day)} of every month"
+    elif string == "Monthly (by weekday)":
+        wd = WEEKDAYS[start.weekday()]
+        count = get_weekday_count(start)
+        return f"On the {count}{get_ending(count)} {wd} of every month"
+    return "???"

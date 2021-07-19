@@ -13,7 +13,7 @@ class DeletableActivePanel(ActivePanel):
         self.message = None
         self.userid = userid
         
-    async def init(self, message):
+    async def init(self, client, message):
         self.message = message
         await message.add_reaction(self.delete_emoji)
         
@@ -32,7 +32,7 @@ class ScrollableActivePanel(ActivePanel):
         self.page = 0
         self.pages = pages
     
-    async def init(self, message):
+    async def init(self, client, message):
         self.message = message
         await message.add_reaction(self.previous_emoji)
         await message.add_reaction(self.next_emoji)
@@ -68,7 +68,7 @@ class YesNoActivePanel(ActivePanel):
         self.decline_emoji = decline_emoji
         self.userid = userid
         
-    async def init(self, message):
+    async def init(self, client, message):
         self.message = message
         await message.add_reaction(self.confirm_emoji)
         await message.add_reaction(self.decline_emoji)
@@ -95,7 +95,7 @@ class InputActivePanel(ActivePanel):
         self.message = None
         self.userid = userid
         
-    async def init(self, message):
+    async def init(self, client, message):
         self.message = message
         
     async def on_message(self, client, message):
