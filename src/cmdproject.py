@@ -23,9 +23,6 @@ class CreateProjectYesNo(YesNoActivePanel):
         self.members = members
         self.guild = guild
         self.dm=dm
-
-    async def init(self, message):
-        await super().init(message)
     
     async def on_accept(self, client, reaction, user):
         channel = reaction.message.channel
