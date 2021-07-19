@@ -5,6 +5,7 @@ import time
 
 import discord
 from discord.ext import tasks
+from utils import WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
 
 
 @tasks.loop(minutes=1)
@@ -178,7 +179,7 @@ class HSBot(discord.Client):
             channel (discord.Channel): Discord channel to send the message to
             message (str): Message string
         """
-        embed = discord.Embed(title="Info", color=0x6db977)
+        embed = discord.Embed(title="Info", color=WARNING_COLOR)
         embed.description = message
         return await channel.send(embed=embed)
 
@@ -189,7 +190,7 @@ class HSBot(discord.Client):
             channel (discord.Channel): Discord channel to send the message to
             message (str): Message string
         """
-        embed = discord.Embed(title="Error", color=0xa00000)
+        embed = discord.Embed(title="Error", color=ERROR_COLOR)
         embed.description = message
         return await channel.send(embed=embed)
 

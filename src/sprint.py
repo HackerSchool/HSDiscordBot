@@ -11,7 +11,7 @@ from pydrive.drive import GoogleDrive
 
 from panels import YesNoActivePanel
 
-from utils import PROJECTS_CATEGORY
+from utils import PROJECTS_CATEGORY, WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
 
 from enum import Enum, auto
 from itertools import combinations
@@ -47,24 +47,24 @@ class CollectYesNo(YesNoActivePanel):
         if self.type == type.sprint:
             if result:
                 if send_files(name, project_name):
-                    embed = discord.Embed(title="Success!", color=0x6db977)
+                    embed = discord.Embed(title="Success!", color=WARNING_COLOR)
                     embed.description = "Downloaded sprint report"
                 else:
-                    embed = discord.Embed(title="Fail!", color=0xff0000)
+                    embed = discord.Embed(title="Fail!", color=ERROR_COLOR)
                     embed.description = "Upload to storage has failed"
                 os.remove(name)
             else:
-                embed = discord.Embed(title="Fail!", color=0xff0000)
+                embed = discord.Embed(title="Fail!", color=ERROR_COLOR)
                 embed.description = "Download failed"
 
         if self.type == type.name_pairs:
             if result:
-                embed = discord.Embed(title="Success!", color=0x6db977)
+                embed = discord.Embed(title="Success!", color=WARNING_COLOR)
                 embed.description = "Downloaded name pairs"
                 await store_new_pairs(name, reaction.message.channel)
                 os.remove(name)
             else:
-                embed = discord.Embed(title="Fail!", color=0xff0000)
+                embed = discord.Embed(title="Fail!", color=ERROR_COLOR)
                 embed.description = "Download failed"
         await reaction.message.edit(content=content, embed=embed)
         await reaction.message.clear_reactions()
@@ -107,12 +107,12 @@ async def store_new_pairs(new_pair_name, channel):
                 new_pairs.remove(pair)
 
     if len(invalid_pairs) > 0:
-        embed = discord.Embed(title="Bad usernames!", color=0xff0000)
+        embed = discord.Embed(title="Bad usernames!", color=ERROR_COLOR)
         embed.description = "These pairs were removed for containing invalid discord usernames (in the first position): " + str(invalid_pairs)
         await channel.send(embed=embed)
 
     if len(known_pairs) > 0:
-        embed = discord.Embed(title="Username Pairs Added!", color=0x6db977)
+        embed = discord.Embed(title="Username Pairs Added!", color=WARNING_COLOR)
         embed.description = "The following pairs were added or updated: " + str(new_pairs)
         await channel.send(embed=embed)
 

@@ -7,7 +7,7 @@ from activepanel import ActivePanel
 from choosable import NUMBERS
 from panels import DeletableActivePanel, YesNoActivePanel, ScrollableActivePanel, InputActivePanel
 from jsonembed import json_to_embed
-from utils import basedir, PROJECTS_CATEGORY
+from utils import basedir, PROJECTS_CATEGORY, WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
 
 # google drive folder creation and deletion
 from pydrive.auth import GoogleAuth     
@@ -37,7 +37,7 @@ class CreateProjectYesNo(YesNoActivePanel):
 
     async def on_decline(self, client, reaction, user):
         channel = reaction.message.channel
-        msgreff_embed = discord.Embed(color=0x6db977)
+        msgreff_embed = discord.Embed(color=WARNING_COLOR)
         msgreff_embed.title = "New project creation aborted!"
         await channel.send(embed=msgreff_embed)
         if self.dm == False:
@@ -66,7 +66,7 @@ class DeleteProjectYesNo(YesNoActivePanel):
 
     async def on_decline(self, client, reaction, user):
         channel = reaction.message.channel
-        msgreff_embed = discord.Embed(color=0x6db977)
+        msgreff_embed = discord.Embed(color=WARNING_COLOR)
         msgreff_embed.title = "Project deletion aborted!"
         msgreff_embed.description = f"**{self.project_name} was untouched"
         await channel.send(embed=msgreff_embed)
@@ -122,7 +122,7 @@ class ProjectCreator(ActivePanel):
             new_participant = message.content
             new_member = member_from_participant(self, self.project_server, new_participant)
             if new_member is None:
-                invalid_participant_embed = discord.Embed(color=0x99ab65)
+                invalid_participant_embed = discord.Embed(color=ERROR_COLOR)
                 invalid_participant_embed.title = "Member not found!"
                 invalid_participant_embed.description = f"Could not find any member named {new_participant} in '{self.project_server.name}' server"
                 bad_name_msg = await message.channel.send(embed=invalid_participant_embed)
@@ -273,7 +273,7 @@ async def members_from_participants(self, guild, info_channel, participants):
             members.append(new_member)
         else:
             msg_not_valid_member_embed = discord.Embed(
-                color=0xc23f2b, title="Error", description=f"{participant} is not a valid member!")
+                color=ERROR_COLOR, title="Error", description=f"{participant} is not a valid member!")
             msg_not_valid_member = await info_channel.send(embed=msg_not_valid_member_embed)
             await self.add_active_panel(msg_not_valid_member, DeletableActivePanel())
     if len(members):
@@ -282,7 +282,7 @@ async def members_from_participants(self, guild, info_channel, participants):
         return None
 
 def new_project_confirmation_embed(project_name, names_str):
-    msg_scc_embed = discord.Embed(color=0x99ab65)
+    msg_scc_embed = discord.Embed(color=WARNING_COLOR)
     msg_scc_embed.title = "Are you sure?"
     msg_scc_embed.description = f"This action will create one role, one voice channel, one text channel and a corresponding google drive folder!\n" \
                                 f"Both channels will only be visible for the project members and management\n" \
@@ -361,12 +361,12 @@ async def make_new_project(members, project_name, output_info_channel, server):
     if existent_text_channel is not None and existent_voice_channel is not None and existent_role is not None and existent_gdrive_folder is not None:
         if members is None or len(members) == 0:
             msg_duplicate_embed = discord.Embed(
-                color=0xf2d61b, title="Project already exists!", description="Nothing was done")
+                color=WARNING_COLOR, title="Project already exists!", description="Nothing was done")
             await output_info_channel.send(embed=msg_duplicate_embed)
             return
         else:
             msg_duplicate_embed = discord.Embed(
-                color=0xf2d61b, title="Project already exists!", description="Only assigned new members")
+                color=WARNING_COLOR, title="Project already exists!", description="Only assigned new members")
             await output_info_channel.send(embed=msg_duplicate_embed)
             just_add_members = True
 
@@ -387,7 +387,7 @@ async def make_new_project(members, project_name, output_info_channel, server):
 
     enum_prefix = "• "
 
-    msgacc_embed = discord.Embed(color=0x6db977)
+    msgacc_embed = discord.Embed(color=WARNING_COLOR)
     msgacc_embed.title = f"Successfully created new project - {project_name}!"
     msgacc_embed.description = enum_prefix.join(
         (enum_prefix+info_str).splitlines(True))
@@ -427,7 +427,7 @@ async def delete_project(project_name, message, user_input=False, self=None):
             info_str = info_str + "Google Drive project folder detected and will be marked as CLOSED\n"
 
         if project_voice_channel is None and project_text_channel is None and project_role is None:
-            msg_usr_none_embed = discord.Embed(color=0x99ab65)
+            msg_usr_none_embed = discord.Embed(color=ERROR_COLOR)
             msg_usr_none_embed.title = "Oops, no project found!"
             possibilities = did_you_mean_project(guild, project_name)
             possibilities_str = ", ".join(possibilities)
@@ -438,7 +438,7 @@ async def delete_project(project_name, message, user_input=False, self=None):
         enum_prefix = "• "
         info = enum_prefix.join((enum_prefix+info_str).splitlines(True))
 
-        msg_usr_confirm_embed = discord.Embed(color=0x99ab65)
+        msg_usr_confirm_embed = discord.Embed(color=ERROR_COLOR)
         msg_usr_confirm_embed.title = "Are you sure?"
         msg_usr_confirm_embed.description = f"This action will delete project **{project_name}**\n"
         msg_usr_confirm_embed.add_field(name="Info", value=info, inline=False)
@@ -457,7 +457,7 @@ async def delete_project(project_name, message, user_input=False, self=None):
         await del_proj_data(project_voice_channel, project_text_channel, project_role, project_folder)
 
 async def project_help(self, message): # message contains both user and channel info
-    help_embed = discord.Embed(color=0x6db977, title="Project Help",
+    help_embed = discord.Embed(color=WARNING_COLOR, title="Project Help",
                                 description=f"**Usage**: {self.prefix}project [arg] [options]\n"
                                             f"Square bracketed arguments are optional\n"
                                             f"List of possible arguments:\n"
@@ -485,16 +485,15 @@ async def validate_participants(self, guild, channel, participants):
     if members is not None:
         names = list(member.display_name for member in members)
         names_str = ", ".join(names)
-        if len(members) != len(participants):
+        if len(members) < len(participants):
             msg_invalid_members_embed = discord.Embed(
-                color=0xc23f2b, title="Input Error", description=f"Please provide valid member names.\n Names provided: {participants_str}\n Corresponding server members: {names_str}")
+                color=WARNING_COLOR, title="Some members not found", description=f"Names provided: {participants_str}\n Valid corresponding server members: {names_str}")
             msg_no_members = await channel.send(embed=msg_invalid_members_embed)
             await self.add_active_panel(msg_no_members, DeletableActivePanel())
-            return
     if members is None or len(members) == 0:
         names_str = "<none>"
         msg_no_members_embed = discord.Embed(
-            color=0xffff00, title="Warning! No members!", description=f"You're about to create a project without any members!\n" \
+            color=WARNING_COLOR, title="Warning! No members!", description=f"You're about to create a project without any members!\n" \
                                                                         "Project role will be created, and will have to be manually " \
                                                                         "assigned to project members, or you can rerun the command " \
                                                                         "with member names later and they will be added to the project " \
@@ -546,14 +545,14 @@ async def command_project(self, message, args):
                 for project in projects_to_delete:
                     await delete_project(project, message, user_input=True, self=self)
         else:
-            msg_unrecognized_embed = discord.Embed(color=0x99ab65)
+            msg_unrecognized_embed = discord.Embed(color=ERROR_COLOR)
             msg_unrecognized_embed.title = "Unrecognized option!\n"
             msg_unrecognized_embed.description = f"Try \"**{self.prefix}project**\" for more information"
             msg_unrecognized = await message.channel.send(embed=msg_unrecognized_embed)
             await self.add_active_panel(msg_unrecognized, DeletableActivePanel(userid=message.author.id))
 
     else:
-        msg_err_embed = discord.Embed(color=0xfcba03)
+        msg_err_embed = discord.Embed(color=ERROR_COLOR)
         msg_err_embed.title = "Improper command usage"
         msg_err_embed.description = f"{self.prefix}project for more information"
         msgerr = await message.channel.send(embed=msg_err_embed)
