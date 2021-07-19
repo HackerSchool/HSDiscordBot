@@ -54,30 +54,6 @@ async def del_proj_data(project_voice_channel, project_text_channel, project_rol
         project_folder['title'] = project_folder['title'] + '-CLOSED'
         project_folder.Upload()
 
-
-def get_room_embed(self):
-    PAGES = 1
-    if self.page > 0 and self.page <= PAGES:
-        path = os.path.join(basedir(__file__), "rsrc",
-                            "room", f"page{self.page}.json")
-        with open(path, "r") as f:
-            return json_to_embed(f.read())
-    return None
-
-
-async def create_room(self, reaction, user, roomID):
-    server = reaction.message.guild
-    usr = str(user)
-    reason = "Selected by" + usr
-    name = "room " + str(roomID) + " by hsbot"
-    await server.create_voice_channel(name, reason=reason)
-
-
-async def on_choose(self, reaction, user, panel, index):
-    await self.send_info(reaction.message.channel, f"Room {index} selected")
-    await create_room(self, reaction, user, index)
-
-
 def get_role_named(guild, name):
     """
     If a role with a given name exists, it is returned, otherwise return None
@@ -375,6 +351,7 @@ async def project_help(self, message): # message contains both user and channel 
         name="delete", value="**Description**: Deletes existent project or projects.\n"
         "• Deletes role and text/voice channels for each project if they exist\n"
         f"• Only affects text/voice channels under **{PROJECTS_CATEGORY}** category\n"
+        "• Calling it with the option '-y' disables the need for further user input\n"
         "**Options**: project1 [project2] ...", inline=False)
     help_msg = await message.channel.send(embed=help_embed)
     await self.add_active_panel(help_msg, DeletableActivePanel(userid=message.author.id))
