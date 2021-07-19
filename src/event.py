@@ -5,6 +5,7 @@ import traceback
 
 from activepanel import ActivePanel
 from panels import DELETE
+from utils import WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
 
 ACCEPT, DECLINE, TENTATIVE = "✅", "❌", "❓"
 WEEKDAYS = ("monday", "tuesday", "wednesday",
@@ -98,7 +99,7 @@ class Event(ActivePanel):
         embed.title = self.name
         if self.description is not None:
             embed.description = self.description
-        embed.color = 0x6db977
+        embed.color = WARNING_COLOR
         embed.add_field(name="Start Time & Duration",
                         value=start+"\n"+duration, inline=False)
         if self.repeat != "Never":
