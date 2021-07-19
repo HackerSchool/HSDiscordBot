@@ -199,8 +199,7 @@ async def make_new_project(members, project_name, output_info_channel, server):
     if projects_category is None:
         info_str = info_str + "Project category did not exist so one was created\n"
         projects_category = await server.create_category_channel(name=PROJECTS_CATEGORY, reason="Added at project creation because none existed")
-        print(projects_category.name)
-    
+
     # Check if project role exists, if so, use it
     existent_role = get_role_named(server, project_name)
     if existent_role is None:

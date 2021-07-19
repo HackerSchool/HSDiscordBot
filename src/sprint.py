@@ -105,6 +105,8 @@ async def create_new_projects(new_pair_name, channel):
     # read excel and convert to list
     df = pd.read_excel(new_pair_name, header=header_projects, squeeze=True)
     new_projects_data = df.values.tolist()
+
+    # create projects and store invalid names
     invalid_names = []
     for project in new_projects_data:
         project_name, *participants = project
@@ -120,7 +122,7 @@ async def create_new_projects(new_pair_name, channel):
 
         await make_new_project(project_members, project_name, channel, channel.guild)
 
-        print(f'name: "{project_name}", participants: "{participants}"')
+    # notify user of invalid names so they can add them to their projects
     if len(invalid_names) > 0:
         embed = discord.Embed(title="Invalid project participants", color=WARNING_COLOR)
         embed.description = f"No server members maching these names could be found. Add them to their projects by giving them the project role.\n{invalid_names}"

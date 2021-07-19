@@ -154,9 +154,14 @@ async def command_project(self, message, args):
         elif args[0] == "delete":
             if len(args) >= 2:
                 projects_to_delete = args[1:]
+                user_input=True
+
+                if '-y' in projects_to_delete:
+                    user_input = False
+                    projects_to_delete.remove('-y')
 
                 for project in projects_to_delete:
-                    await delete_project(project, message, user_input=True, self=self)
+                    await delete_project(project, message, user_input=user_input, self=self)
         else:
             msg_unrecognized_embed = discord.Embed(color=ERROR_COLOR)
             msg_unrecognized_embed.title = "Unrecognized option!\n"
