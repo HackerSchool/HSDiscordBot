@@ -1,0 +1,12 @@
+{
+    "title": "Event Creator",
+    "description": "Options:\n> **1.** Daily\n> **2.** Weekly\n> **3.** Monthly\n> **4.** Monthly (by weekday)",
+    "color": 7190903,
+    "fields": [
+        {
+            "name": "Repeat",
+            "value": "",
+            "inline": false
+        }
+    ]
+}
