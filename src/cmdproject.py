@@ -294,6 +294,7 @@ def new_project_confirmation_embed(project_name, names_str):
 async def make_new_project(members, project_name, output_info_channel, server):
     # Useful information to show the user
     info_str = ""
+    just_add_members = False
 
     # Check if project role exists, if not, create it
     projects_category = get_category_named(server, PROJECTS_CATEGORY)
@@ -316,10 +317,6 @@ async def make_new_project(members, project_name, output_info_channel, server):
         project_role: discord.PermissionOverwrite(
             read_messages=True, send_messages=True)
     }
-    # Assign project members their role
-    if members is not None:
-        for member in members:
-            await member.add_roles(project_role, reason="Project Added")
 
     # Check if voice channel exists, if so, use it and update permissions
     existent_voice_channel = get_voice_channel_named(
@@ -345,24 +342,40 @@ async def make_new_project(members, project_name, output_info_channel, server):
         project_text_channel = existent_text_channel
         info_str = info_str + "Used previously created project text channel\n"
 
-    if members is None or len(members) == 0:
-        info_str = info_str + "This project contains no members. Add them by assigning them the newly created project role\n"
 
     # create new google drive folder with "project_name" as its name if none exists
     gauth = GoogleAuth()
     drive = GoogleDrive(gauth)
-    if get_gdrive_folder_named(project_name) is None:
+    existent_gdrive_folder = get_gdrive_folder_named(project_name)
+    if existent_gdrive_folder is None:
         folder = drive.CreateFile({'title' : project_name, 'mimeType' : 'application/vnd.google-apps.folder', 'parents' : [{'id': master_folder_ID}]})
         folder.Upload()
         info_str = info_str + "Created project google drive folder for project\n"
     else:
         info_str = info_str + "Used previously created project google drive folder for project\n"
 
+    if members is None or len(members) == 0:
+        info_str = info_str + "This project contains no members. Add them by assigning them the newly created project role\n"
+
     # If the project already exists, let the user know
-    if existent_text_channel is not None and existent_voice_channel is not None and existent_role is not None:
-        msg_duplicate_embed = discord.Embed(
-            color=0xf2d61b, title="Project already exists!", description="Nothing was done")
-        await output_info_channel.send(embed=msg_duplicate_embed)
+    if existent_text_channel is not None and existent_voice_channel is not None and existent_role is not None and existent_gdrive_folder is not None:
+        if members is None or len(members) == 0:
+            msg_duplicate_embed = discord.Embed(
+                color=0xf2d61b, title="Project already exists!", description="Nothing was done")
+            await output_info_channel.send(embed=msg_duplicate_embed)
+            return
+        else:
+            msg_duplicate_embed = discord.Embed(
+                color=0xf2d61b, title="Project already exists!", description="Only assigned new members")
+            await output_info_channel.send(embed=msg_duplicate_embed)
+            just_add_members = True
+
+    # Assign project members their role
+    if members is not None:
+        for member in members:
+            await member.add_roles(project_role, reason="Project Added")
+
+    if just_add_members == True:
         return
 
     # Give read/write access to all management roles
