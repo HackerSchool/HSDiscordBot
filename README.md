@@ -22,8 +22,7 @@ Types of actions that trigger the bot:
 - [ ] Automatic attendance detection
 - [ ] Some way to track people who don't answer event announcements
 - [x] Sprint report tracking
-- [ ] Brainstorm help in the form of voice room creation
-- [ ] Project setup and emoji (?)
+- [x] Project setup info (role mention + basic info)
 - [x] Project setup (role, text channel, voice channel) and deletion
 - [x] "Mass" project setup from file containing necessary information
 
