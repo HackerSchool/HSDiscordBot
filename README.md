@@ -19,7 +19,7 @@ Types of actions that trigger the bot:
 ### Wanted specifications
 - [x] Discord nickname from google forms (excel)
 - [ ] Announcement creation similar to Apollo
-- [ ] Automatic attendance detection (run command to return list of people in voice chat)
+- [x] Automatic attendance detection (run command to return list of people in voice chat)
 - [ ] Some way to track people who don't answer event announcements
 - [x] Sprint report tracking
 - [x] Project setup info (role mention + basic info)
@@ -49,6 +49,12 @@ Usage:
 
 ```
 
+3. `present`  
+Responds with a list of members which are currently in voice chat
+``` 
+Usage: 
+[prefix]present
+```
 
 ### Detectable Files
 
