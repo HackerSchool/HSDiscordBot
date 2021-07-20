@@ -138,15 +138,22 @@ async def command_project(self, message, args):
     elif len(args) >= 2:
         if args[0] == "new":
             project_name, *participants = args[1:]
-            
+            user_input=True
+            if '-y' in participants:
+                    user_input = False
+                    participants.remove('-y')
+
             members, names_str = await validate_participants(self, message.guild, message.channel, participants)
-
             
-            msg_scc = await message.channel.send(embed=new_project_confirmation_embed(project_name, names_str))
+            if user_input:
+                msg_scc = await message.channel.send(embed=new_project_confirmation_embed(project_name, names_str))
+                yn = CreateProjectYesNo(project_name, members, message.channel.guild, userid=message.author.id)
+                await self.add_active_panel(msg_scc, yn)
+            else:
+                await make_new_project(members, project_name, message.channel, message.channel.guild)
 
-            yn = CreateProjectYesNo(project_name, members, message.channel.guild, userid=message.author.id)
 
-            await self.add_active_panel(msg_scc, yn)
+
             
         elif args[0] == "delete":
             if len(args) >= 2:

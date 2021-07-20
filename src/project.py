@@ -238,19 +238,19 @@ async def make_new_project(members, project_name, output_info_channel, server):
     if existent_text_channel is not None and existent_voice_channel is not None and existent_role is not None and existent_gdrive_folder is not None:
         if members is None or len(members) == 0:
             msg_duplicate_embed = discord.Embed(
-                color=WARNING_COLOR, title="Project '{project_name}' already exists!", description=f"Nothing was done.")
+                color=WARNING_COLOR, title=f"Project '{project_name}' already exists!", description=f"Nothing was done.")
             await output_info_channel.send(embed=msg_duplicate_embed)
             return
         else:
             msg_duplicate_embed = discord.Embed(
-                color=WARNING_COLOR, title="Project '{project_name}' already exists!", description="Only assigned new members")
+                color=WARNING_COLOR, title=f"Project '{project_name}' already exists!", description="Only assigned new members")
             await output_info_channel.send(embed=msg_duplicate_embed)
             just_add_members = True
 
     # Assign project members their role
     if members is not None:
         for member in members:
-            await member.add_roles(project_role, reason="Project '{project_name}' Added")
+            await member.add_roles(project_role, reason=f"Project '{project_name}' Added")
 
     if just_add_members == True:
         return
@@ -263,6 +263,16 @@ async def make_new_project(members, project_name, output_info_channel, server):
             await project_voice_channel.set_permissions(role, read_messages=True, send_messages=True, manage_messages=True)
 
     enum_prefix = "• "
+
+    welcome_message = f"<@&{project_role.id}>\n"
+    welcome_message += f"This channel homes project '{project_name}'\n"
+    welcome_message += f"Currently, the members are {names_str}\n"
+    welcome_message += f"You can submit sprint reports through this text channel by simply sending your "
+    welcome_message += f"sprint report as an attachment to the channel, ensuring its name "
+    welcome_message += f"starts with 'sprint'. Examples of valid names are 'sprint1.pdf', "
+    welcome_message += f"'sprint_january.zip', 'sprint_buffer' and 'sprint report.jpg'\n"
+    welcome_message += f"That's all from me!"
+    await project_text_channel.send(content = welcome_message)
 
     msgacc_embed = discord.Embed(color=SUCCESS_COLOR)
     msgacc_embed.title = f"Successfully created new project - {project_name}!"
