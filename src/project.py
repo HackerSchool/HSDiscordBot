@@ -1,13 +1,9 @@
 import logging
-import os
 
 import discord
-from activepanel import ActivePanel
 
-from choosable import NUMBERS
-from panels import DeletableActivePanel, YesNoActivePanel, ScrollableActivePanel, InputActivePanel
-from jsonembed import json_to_embed
-from utils import basedir, PROJECTS_CATEGORY, WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR, MANAGEMENT_ROLES, master_folder_ID
+from panels import DeletableActivePanel, YesNoActivePanel
+from cfg import PROJECTS_CATEGORY, WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR, MANAGEMENT_ROLES, MASTER_FOLDER_ID
 
 # google drive folder creation and deletion
 from pydrive.auth import GoogleAuth     
@@ -100,7 +96,7 @@ def get_gdrive_folder_named(folder_name):
     gauth = GoogleAuth()
     drive = GoogleDrive(gauth)
     folders = drive.ListFile(
-        {'q': f"mimeType='application/vnd.google-apps.folder' and '{master_folder_ID}' in parents and trashed=false"}).GetList()
+        {'q': f"mimeType='application/vnd.google-apps.folder' and '{MASTER_FOLDER_ID}' in parents and trashed=false"}).GetList()
     for folder in folders:
         if folder['title'].lower() == folder_name.lower():
             return folder
@@ -221,7 +217,7 @@ async def make_new_project(members, project_name, output_info_channel, server):
     drive = GoogleDrive(gauth)
     existent_gdrive_folder = get_gdrive_folder_named(project_name)
     if existent_gdrive_folder is None:
-        folder = drive.CreateFile({'title' : project_name, 'mimeType' : 'application/vnd.google-apps.folder', 'parents' : [{'id': master_folder_ID}]})
+        folder = drive.CreateFile({'title' : project_name, 'mimeType' : 'application/vnd.google-apps.folder', 'parents' : [{'id': MASTER_FOLDER_ID}]})
         folder.Upload()
         info_str = info_str + "Created project google drive folder for project\n"
     else:

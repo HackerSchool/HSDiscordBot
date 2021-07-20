@@ -11,33 +11,13 @@ from pydrive.drive import GoogleDrive
 
 from panels import YesNoActivePanel
 
-from utils import PROJECTS_CATEGORY, WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
-
 from enum import Enum, auto
 from itertools import combinations
 
 from project import make_new_project, member_from_participant
 
-# first position: index of column containing discord usernames
-# second position: index of column containing wanted server nicknames
-cols_name_pairs = (0, 1)
+from cfg import SPRINT_PREFIX, NAMES_PREFIX, PROJECTS_PREFIX, HEADER_NAME_PAIRS, HEADER_PROJECTS, COLS_NAME_PAIRS, NAME_PAIRS_FILE, PROJECTS_CATEGORY, WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
 
-# index of header line. if none, header_name_pairs should be set to None
-header_name_pairs = None
-header_projects = None
-
-# first position: index of column cntaining project names
-# second position: index of first column containing member names, it is assumed that all populated columns to the right contain members' names
-# cols_projects = (0, 1)
-
-
-# file to store all name pairs
-name_pairs_file = "names.pkl"
-
-# attachments' file names started with these characters are detected, others are ignored
-sprint_prefix = "sprint"        # as sprint reports
-names_prefix = "name"           # as name pairs
-projects_prefix = "project"     # as new projects
 
 class type(Enum):
     sprint = auto()
@@ -103,7 +83,7 @@ class CollectYesNo(YesNoActivePanel):
 
 async def create_new_projects(new_pair_name, channel):
     # read excel and convert to list
-    df = pd.read_excel(new_pair_name, header=header_projects, squeeze=True)
+    df = pd.read_excel(new_pair_name, header=HEADER_PROJECTS, squeeze=True)
     new_projects_data = df.values.tolist()
 
     # create projects and store invalid names
@@ -130,13 +110,13 @@ async def create_new_projects(new_pair_name, channel):
 
 async def store_new_pairs(new_pair_name, channel):
     # read excel and convert to list
-    df = pd.read_excel(new_pair_name, header=header_name_pairs, usecols=cols_name_pairs, squeeze=True)
+    df = pd.read_excel(new_pair_name, header=HEADER_NAME_PAIRS, usecols=COLS_NAME_PAIRS, squeeze=True)
     new_pairs = df.values.tolist()
 
     # load previous known name pairs
-    open(name_pairs_file,"a+")
+    open(NAME_PAIRS_FILE,"a+")
     try:
-        known_pairs = pickle.load(open(name_pairs_file,"rb"))
+        known_pairs = pickle.load(open(NAME_PAIRS_FILE,"rb"))
     except EOFError:
         known_pairs = []
 
@@ -171,8 +151,8 @@ async def store_new_pairs(new_pair_name, channel):
         embed.description = "The following pairs were added or updated: " + str(new_pairs)
         await channel.send(embed=embed)
 
-    # store everything in name_pairs_file
-    file_to_store = open(name_pairs_file, 'wb')
+    # store everything in NAME_PAIRS_FILE
+    file_to_store = open(NAME_PAIRS_FILE, 'wb')
     pickle.dump(known_pairs, file_to_store)
 
 async def download_file(url, path):
@@ -225,7 +205,7 @@ def send_files(file_name, folder_name):
 async def handler_attachment(self, message):
     """Used when a file is sent to a channel"""
     for attachment in message.attachments:
-        if sprint_prefix in attachment.filename.lower():
+        if SPRINT_PREFIX in attachment.filename.lower():
             if message.channel.category.name.lower() == PROJECTS_CATEGORY.lower():
                 msg = await self.send_info(message.channel, f"Should I capture '{attachment.filename}' as a sprint report?")
                 yn = CollectYesNo(attachment, type.sprint, userid=message.author.id)
@@ -236,12 +216,12 @@ async def handler_attachment(self, message):
                                                       f"be under {PROJECTS_CATEGORY} category!")
 
 
-        if names_prefix in attachment.filename.lower():
+        if NAMES_PREFIX in attachment.filename.lower():
             msg = await self.send_info(message.channel, f"Should I store name pairs in '{attachment.filename}' to replace newcomers' names?")
             yn = CollectYesNo(attachment, type.name_pairs, userid=message.author.id)
             await self.add_active_panel(msg, yn)
 
-        if projects_prefix in attachment.filename.lower():
+        if PROJECTS_PREFIX in attachment.filename.lower():
             msg = await self.send_info(message.channel, f"Should I use '{attachment.filename}' to create new projects?")
             yn = CollectYesNo(attachment, type.projects, userid=message.author.id)
             await self.add_active_panel(msg, yn)
@@ -251,9 +231,9 @@ async def handler_attachment(self, message):
 def add_member_name_change(client):
     @client.event
     async def on_member_join(member):
-        open(name_pairs_file,"a+")
+        open(NAME_PAIRS_FILE,"a+")
         try:
-            known_pairs = pickle.load(open(name_pairs_file,"rb"))
+            known_pairs = pickle.load(open(NAME_PAIRS_FILE,"rb"))
         except EOFError:
             known_pairs = []
 

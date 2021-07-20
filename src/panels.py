@@ -1,10 +1,8 @@
 import discord
 
 from activepanel import ActivePanel
+from cfg import DELETE, ACCEPT, DECLINE
 
-DELETE = "<:delete:827871952336715776>"
-CONFIRM = "✅"
-DECLINE = "❌"
 
 
 class DeletableActivePanel(ActivePanel):
@@ -61,7 +59,7 @@ class ScrollableActivePanel(ActivePanel):
         
 
 class YesNoActivePanel(ActivePanel):
-    def __init__(self, on_accept=None, on_decline=None, confirm_emoji=CONFIRM, decline_emoji=DECLINE, userid=None):
+    def __init__(self, on_accept=None, on_decline=None, confirm_emoji=ACCEPT, decline_emoji=DECLINE, userid=None):
         self._on_accept = on_accept
         self._on_decline = on_decline
         self.confirm_emoji = confirm_emoji

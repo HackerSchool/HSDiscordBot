@@ -1,11 +1,9 @@
 from logging import ERROR
 import discord
-from utils import WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
+from cfg import WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR, MINIMUM_SUFFICIENT_ATTENDANCE_PERCENTAGE
 import datetime
 import logging
 
-# a user which is continuously present in least this % of the event is guaranteed to be marked as present
-minimum_sufficient_attendance_percentage = 40
 
 class PresenceMarker:
     def __init__(self, guild, channel):
@@ -64,7 +62,7 @@ async def command_present(self, message, args):
             now = datetime.datetime.now()
             
             duration_seconds = duration_minutes * 60
-            check_intervals = duration_seconds*minimum_sufficient_attendance_percentage/100
+            check_intervals = duration_seconds*MINIMUM_SUFFICIENT_ATTENDANCE_PERCENTAGE/100
 
             attendance_checker = PresenceMarker(message.guild, message.channel)
             

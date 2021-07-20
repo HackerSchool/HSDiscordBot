@@ -5,7 +5,7 @@ import time
 
 import discord
 from discord.ext import tasks
-from utils import WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
+from cfg import WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
 
 
 @tasks.loop(minutes=1)

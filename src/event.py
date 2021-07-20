@@ -5,9 +5,8 @@ import traceback
 
 from activepanel import ActivePanel
 from panels import DELETE
-from utils import WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
+from cfg import WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR, ACCEPT, DECLINE, TENTATIVE
 
-ACCEPT, DECLINE, TENTATIVE = "✅", "❌", "❓"
 WEEKDAYS = ("monday", "tuesday", "wednesday",
             "thursday", "friday", "saturday", "sunday")
 

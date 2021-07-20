@@ -7,14 +7,13 @@ from activepanel import ActivePanel
 from choosable import NUMBERS
 from panels import DeletableActivePanel, YesNoActivePanel, ScrollableActivePanel, InputActivePanel
 from jsonembed import json_to_embed
-from utils import basedir, PROJECTS_CATEGORY, WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
+from utils import basedir
+from cfg import PROJECTS_CATEGORY, WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
 from project import *
 
 # google drive folder creation and deletion
 from pydrive.auth import GoogleAuth     
 from pydrive.drive import GoogleDrive
-
-NEW_PROJECT_ARG = "-p"
 
 class CreateProjectYesNo(YesNoActivePanel):
     def __init__(self, project_name, members, guild, userid=None, dm=False):
