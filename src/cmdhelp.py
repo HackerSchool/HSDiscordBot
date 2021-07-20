@@ -34,6 +34,6 @@ class HelpScrollable(ActivePanel):
 
 
 async def command_help(self, message, args):
-    s = HelpScrollable(1, message.author.id)
+    s = HelpScrollable(2, message.author.id)
     msg = await message.channel.send(embed=await s.sap.page_func())
     await self.add_active_panel(msg, s)

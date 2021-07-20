@@ -1,15 +1,19 @@
 {
-    "title": "Help",
+    "title": "Help (1)",
     "color": 7190903,
-
+    "description": "Each page contains commands and their respective uses\nMessages created by the bot will sometimes be reacted by the bot. Mostly, these reactions are interactable and trigger bot action.",
     "fields": [
         {
-            "name": "Sample Text",
-            "value": "Value Text"
+            "name": "`help`",
+            "value": "Displays this help page"
         },
         {
-            "name": "Example 2",
-            "value": "Value 2"
+            "name": "`event`",
+            "value": "Sends a private message to the user who prompted the command with an event configuration panel."
+        },
+        {
+            "name": "`presence [time_minutes]`",
+            "value": "`presence` returns all members currently in a voice channel.\n`presence time_minutes` records presence over the given time."
         }
     ]
 }

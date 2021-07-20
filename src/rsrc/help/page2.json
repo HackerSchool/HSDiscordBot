@@ -1,0 +1,14 @@
+{
+    "title": "Help (2)",
+    "color": 7190903,
+    "fields": [
+        {
+            "name": "`project [new/delete] [args]`",
+            "value": "`project new` sends the user a DM with a project creation interface.\n`project new project_name [project_members]` creates a new project with project_name as its name and project_members as its members.\n`project delete project_name` deletes the given project.\n`project help` displays more information about this command"
+        },
+        {
+            "name": "``",
+            "value": ""
+        }
+    ]
+}
