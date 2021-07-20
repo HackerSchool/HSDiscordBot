@@ -13,7 +13,7 @@ class PresenceMarker:
         self.channel = channel
         self.attendees = []
     
-    async def mark_presence(self, dummy):
+    async def mark_presence(self, client=None):
         cur_active_members = members_in_vc(self.guild)
         if len(cur_active_members) == 0:
             return
@@ -22,7 +22,7 @@ class PresenceMarker:
                 cur_active_members.remove(member)
         self.attendees.extend(cur_active_members)
     
-    async def deliver_attendance(self, dummy):
+    async def deliver_attendance(self, client=None):
         await _deliver_attendance(self.attendees, self.channel)
 
 def members_in_vc(guild : discord.Guild):
