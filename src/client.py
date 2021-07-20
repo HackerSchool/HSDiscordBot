@@ -8,7 +8,7 @@ from discord.ext import tasks
 from cfg import WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
 
 
-@tasks.loop(minutes=1)
+@tasks.loop(seconds=5)
 async def task_worker(self):
     past = []
     for task in self.tasks:
