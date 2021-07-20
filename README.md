@@ -31,14 +31,21 @@ Types of actions that trigger the bot:
 
 ### Commands
 
-1. `event`  
+1. `help`
+Displays helpful information about the bot and available commands.
+``` 
+Usage: 
+[prefix]help
+```
+
+2. `event`  
 Sends a private message to the user who prompted the command with an event configuration panel.
 ``` 
 Usage: 
 [prefix]event
 ```
 
-2. `project`  
+3. `project`  
 Aids in manual project creation/deletion without the need to mess with roles, text, voice channels and their respective permissions.
 ``` python
 Usage: 
@@ -49,11 +56,12 @@ Usage:
 
 ```
 
-3. `present`  
+4. `present`  
 Responds with a list of members which are currently in voice chat
 ``` 
 Usage: 
-[prefix]present
+[prefix]present # displays list of members which are currently in a voice channel
+[prefix]present time_minutes # records all members which were in a voice channel for "a bit" from the moment the command is pressed, for time_minutes minutes
 ```
 
 ### Detectable Files
