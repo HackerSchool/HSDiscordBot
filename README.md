@@ -25,6 +25,7 @@ Types of actions that trigger the bot:
 - [x] Project setup info (role mention + basic info)
 - [x] Project setup (role, text channel, voice channel) and deletion
 - [x] "Mass" project setup from file containing necessary information
+- [ ] Polls
 
 ## Documentation
 
