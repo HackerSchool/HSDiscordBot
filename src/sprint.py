@@ -6,8 +6,6 @@ import client
 
 import aiohttp
 import discord
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
 
 from panels import YesNoActivePanel
 
@@ -18,6 +16,7 @@ from project import make_new_project, member_from_participant
 
 from cfg import SPRINT_PREFIX, NAMES_PREFIX, PROJECTS_PREFIX, HEADER_NAME_PAIRS, HEADER_PROJECTS, COLS_NAME_PAIRS, NAME_PAIRS_FILE, PROJECTS_CATEGORY, WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
 
+from gdrive import send_files
 
 class type(Enum):
     sprint = auto()
@@ -178,27 +177,6 @@ async def download_file(url, path):
     return True
 
 
-def send_files(file_name, folder_name):
-    """
-    Sends file to google drive folder, assuming first two characters in file name are '.\'
-    Returns: 
-        -True if successful
-        -False if unsuccessful
-    """
-    gauth = GoogleAuth()
-    drive = GoogleDrive(gauth)
-    gfile = drive.CreateFile({'title': file_name})
-
-    folders = drive.ListFile(
-        {'q': "title='" + folder_name + "' and mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
-    for folder in folders:
-        if folder['title'].lower() == folder_name.lower():
-            
-            gfile = drive.CreateFile({'title': file_name[2:], 'parents': [{'id': folder['id']}]})
-            gfile.SetContentFile(file_name)
-            gfile.Upload()
-            return True
-    return False
 
 
 

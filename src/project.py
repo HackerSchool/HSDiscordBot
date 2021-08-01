@@ -5,9 +5,7 @@ import discord
 from panels import DeletableActivePanel, YesNoActivePanel
 from cfg import PROJECTS_CATEGORY, WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR, MANAGEMENT_ROLES, MASTER_FOLDER_ID
 
-# google drive folder creation and deletion
-from pydrive.auth import GoogleAuth     
-from pydrive.drive import GoogleDrive
+from gdrive import get_gdrive_folder_named, create_gdrive_folder
 
 class DeleteProjectYesNo(YesNoActivePanel):
     def __init__(self, project_voice_channel, project_text_channel, project_role, project_folder, userid=None):
@@ -89,19 +87,6 @@ def get_category_named(guild, name):
             return category
     return None
 
-def get_gdrive_folder_named(folder_name):
-    """
-    If a google drive folder with a given name exists in the bot's account, it is returned, otherwise return None
-    """
-    gauth = GoogleAuth()
-    drive = GoogleDrive(gauth)
-    folders = drive.ListFile(
-        {'q': f"mimeType='application/vnd.google-apps.folder' and '{MASTER_FOLDER_ID}' in parents and trashed=false"}).GetList()
-    for folder in folders:
-        if folder['title'].lower() == folder_name.lower():
-            return folder
-    return None
-
 def member_from_participant(guild, participant):
     def verify(member):
         return participant.lower() in member.name.lower()
@@ -165,6 +150,7 @@ async def make_new_project(members, project_name, output_info_channel, server):
     # Useful information to show the user
     info_str = ""
     just_add_members = False
+    names_str = ""
 
     # Check if project role exists, if not, create it
     projects_category = get_category_named(server, PROJECTS_CATEGORY)
@@ -213,12 +199,9 @@ async def make_new_project(members, project_name, output_info_channel, server):
 
 
     # create new google drive folder with "project_name" as its name if none exists
-    gauth = GoogleAuth()
-    drive = GoogleDrive(gauth)
     existent_gdrive_folder = get_gdrive_folder_named(project_name)
     if existent_gdrive_folder is None:
-        folder = drive.CreateFile({'title' : project_name, 'mimeType' : 'application/vnd.google-apps.folder', 'parents' : [{'id': MASTER_FOLDER_ID}]})
-        folder.Upload()
+        create_gdrive_folder(project_name)
         info_str = info_str + "Created project google drive folder for project\n"
     else:
         info_str = info_str + "Used previously created project google drive folder for project\n"
