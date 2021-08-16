@@ -1,7 +1,7 @@
 {
     "title": "Help (1)",
     "color": 7190903,
-    "description": "Each page contains commands and their respective uses\nMessages created by the bot will sometimes be reacted by the bot. Mostly, these reactions are interactable and trigger bot action.",
+    "description": "Each page contains commands and their respective usages\nMessages created by the bot will sometimes be reacted by the bot. Mostly, these reactions are interactable and trigger bot action.",
     "fields": [
         {
             "name": "`help`",
