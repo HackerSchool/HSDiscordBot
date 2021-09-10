@@ -9,7 +9,7 @@ import cmdproject
 import sprint
 
 
-def setup(client):
+def setup(client : client.HSBot):
     """This function is responsible for registering all commands and reaction handlers with the client"""
     client.add_command("help", cmdhelp.command_help)
     client.add_command("event", cmdevent.command_event)

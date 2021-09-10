@@ -1,6 +1,8 @@
 import logging
+from typing import Optional
 
 import discord
+from client import HSBot
 
 from panels import DeletableActivePanel, YesNoActivePanel
 from cfg import PROJECTS_CATEGORY, WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR, MANAGEMENT_ROLES, MASTER_FOLDER_ID
@@ -19,7 +21,7 @@ class DeleteProjectYesNo(YesNoActivePanel):
     async def delete_project_data(self):
         await del_proj_data(self.project_voice_channel, self.project_text_channel, self.project_role, self.project_folder)
 
-    async def on_accept(self, client, reaction, user):
+    async def on_accept(self, client : HSBot, reaction : discord.Reaction, user : discord.User):
         channel = reaction.message.channel
         await self.delete_project_data()
         msg_deletion_success_embed = discord.Embed(
@@ -27,7 +29,7 @@ class DeleteProjectYesNo(YesNoActivePanel):
         await channel.send(embed=msg_deletion_success_embed)
         await reaction.message.clear_reactions()
 
-    async def on_decline(self, client, reaction, user):
+    async def on_decline(self, client : HSBot, reaction : discord.Reaction, user : discord.User):
         channel = reaction.message.channel
         msgreff_embed = discord.Embed(color=WARNING_COLOR)
         msgreff_embed.title = "Project deletion aborted!"
@@ -36,7 +38,7 @@ class DeleteProjectYesNo(YesNoActivePanel):
         await reaction.message.clear_reactions()
 
 
-async def del_proj_data(project_voice_channel, project_text_channel, project_role, project_folder):
+async def del_proj_data(project_voice_channel : discord.VoiceChannel, project_text_channel : discord.TextChannel, project_role : discord.Role, project_folder):
     if project_voice_channel is not None:
         await project_voice_channel.delete()
     if project_text_channel is not None:
@@ -48,7 +50,7 @@ async def del_proj_data(project_voice_channel, project_text_channel, project_rol
         project_folder['title'] = project_folder['title'] + '-CLOSED'
         project_folder.Upload()
 
-def get_role_named(guild, name):
+def get_role_named(guild, name : str):
     """
     If a role with a given name exists, it is returned, otherwise return None
     """
@@ -58,7 +60,7 @@ def get_role_named(guild, name):
     return None
 
 
-def get_voice_channel_named(category, name):
+def get_voice_channel_named(category : discord.CategoryChannel, name : str):
     """
     If a voice channel with a given name exists, it is returned, otherwise return None
     """
@@ -68,7 +70,7 @@ def get_voice_channel_named(category, name):
     return None
 
 
-def get_text_channel_named(category, name):
+def get_text_channel_named(category : discord.CategoryChannel, name : str):
     """
     If a text channel with a given name exists, it is returned, otherwise return None
     """
@@ -78,7 +80,7 @@ def get_text_channel_named(category, name):
     return None
 
 
-def get_category_named(guild, name):
+def get_category_named(guild : discord.Guild, name : str):
     """
     If a category with a given name exists, it is returned, otherwise return None
     """
@@ -87,7 +89,7 @@ def get_category_named(guild, name):
             return category
     return None
 
-def member_from_participant(guild, participant):
+def member_from_participant(guild : discord.Guild, participant : str):
     def verify(member):
         return participant.lower() in member.name.lower()
 
@@ -100,8 +102,8 @@ def member_from_participant(guild, participant):
     else:
         return None
 
-def did_you_mean_project(guild, failed_name):
-    def verify(project):
+def did_you_mean_project(guild : discord.Guild, failed_name : str):
+    def verify(project : str):
         if failed_name in project.lower():
             if project in MANAGEMENT_ROLES:
                 return False
@@ -120,7 +122,7 @@ def did_you_mean_project(guild, failed_name):
         return None
 
 
-async def members_from_participants(self, guild, info_channel, participants):
+async def members_from_participants(self : HSBot, guild : discord.Guild, info_channel : discord.TextChannel, participants : list[discord.User]):
     members = []
     for participant in participants:
         new_member = member_from_participant(guild, participant)
@@ -136,7 +138,7 @@ async def members_from_participants(self, guild, info_channel, participants):
     else:
         return None
 
-def new_project_confirmation_embed(project_name, names_str):
+def new_project_confirmation_embed(project_name : str, names_str : str):
     msg_scc_embed = discord.Embed(color=WARNING_COLOR)
     msg_scc_embed.title = "Are you sure?"
     msg_scc_embed.description = f"This action will create one role, one voice channel, one text channel and a corresponding google drive folder!\n" \
@@ -146,7 +148,7 @@ def new_project_confirmation_embed(project_name, names_str):
     return msg_scc_embed
 
 
-async def make_new_project(members, project_name, output_info_channel, server):
+async def make_new_project(members : Optional[list[discord.User]], project_name : str, output_info_channel : discord.TextChannel, server : discord.Guild):
     # Useful information to show the user
     info_str = ""
     just_add_members = False
@@ -259,7 +261,7 @@ async def make_new_project(members, project_name, output_info_channel, server):
         (enum_prefix+info_str).splitlines(True))
     await output_info_channel.send(embed=msgacc_embed)
             
-async def delete_project(project_name, message, user_input=False, self=None):
+async def delete_project(project_name : str, message : discord.Message, user_input : bool =False, self : Optional[HSBot] = None):
     output_info_channel, guild = message.channel, message.guild
     info_str = ""
     projects_category = get_category_named(guild, PROJECTS_CATEGORY)
@@ -322,7 +324,7 @@ async def delete_project(project_name, message, user_input=False, self=None):
     else:
         await del_proj_data(project_voice_channel, project_text_channel, project_role, project_folder)
 
-async def project_help(self, message): # message contains both user and channel info
+async def project_help(self : HSBot, message : str): # message contains both user and channel info
     help_embed = discord.Embed(color=WARNING_COLOR, title="Project Help",
                                 description=f"**Usage**: {self.prefix}project [arg] [options]\n"
                                             f"Square bracketed arguments are optional\n"
@@ -345,7 +347,7 @@ async def project_help(self, message): # message contains both user and channel 
     help_msg = await message.channel.send(embed=help_embed)
     await self.add_active_panel(help_msg, DeletableActivePanel(userid=message.author.id))
 
-async def validate_participants(self, guild, channel, participants):
+async def validate_participants(self : HSBot, guild : discord.Guild, channel : discord.TextChannel, participants : list[discord.User]):
     participants_str = ", ".join(participants)
     members = await members_from_participants(self, guild, channel, participants)
     names_str = ""

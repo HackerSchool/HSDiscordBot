@@ -1,12 +1,14 @@
+from typing import List
 from logging import ERROR
 import discord
 from cfg import WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR, MINIMUM_SUFFICIENT_ATTENDANCE_PERCENTAGE
 import datetime
 import logging
+from client import HSBot
 
 
 class PresenceMarker:
-    def __init__(self, guild, channel):
+    def __init__(self, guild : discord.Guild, channel : discord.channel.VoiceChannel):
         self.guild = guild
         self.channel = channel
         self.attendees = []
@@ -31,7 +33,7 @@ def members_in_vc(guild : discord.Guild):
             members.append(member)
     return members
 
-async def _deliver_attendance(members, channel):
+async def _deliver_attendance(members : list[discord.member.Member], channel : discord.channel.TextChannel):
     names = [member.display_name for member in members ]
 
     if len(names) == 0:
@@ -46,7 +48,7 @@ async def _deliver_attendance(members, channel):
 
     await channel.send(embed=embed)
 
-def mark_presence_over_time(client, guild, channel, duration_seconds):
+def mark_presence_over_time(client : HSBot, guild : discord.Guild, channel : discord.channel.VoiceChannel, duration_seconds : int):
     now = datetime.datetime.now()
     
     check_intervals = duration_seconds*MINIMUM_SUFFICIENT_ATTENDANCE_PERCENTAGE/100
@@ -62,11 +64,12 @@ def mark_presence_over_time(client, guild, channel, duration_seconds):
     
 
 
-async def command_present(self, message, args):
+async def command_present(client : HSBot, message : discord.Message, args : List[str] ):
     user_input = True
     if '-y' in args:
         user_input = False
-
+        args.remove('-y')
+    
     if len(args) == 0:
         present = members_in_vc(message.channel.guild)
         await _deliver_attendance(present, message.channel)
@@ -77,7 +80,7 @@ async def command_present(self, message, args):
             duration_minutes = float(args[0])
             
             duration_seconds = duration_minutes * 60
-            mark_presence_over_time(self, message.guild, message.channel, duration_seconds)
+            mark_presence_over_time(client, message.guild, message.channel, duration_seconds)
 
             embed = discord.Embed(title="Recording attendance", color=SUCCESS_COLOR)
             embed.description = f"Tracking attendance starting now for {duration_minutes} minutes.\n"

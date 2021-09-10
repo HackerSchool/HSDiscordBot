@@ -1,4 +1,7 @@
 import discord
+from discord.message import Message
+from discord.reaction import Reaction
+from client import HSBot
 
 from activepanel import ActivePanel
 from cfg import DELETE, ACCEPT, DECLINE
@@ -21,7 +24,7 @@ class DeletableActivePanel(ActivePanel):
             
 
 class ScrollableActivePanel(ActivePanel):
-    def __init__(self, page_func, pages, previous_emoji="⬅️", next_emoji="➡️", userid=None):
+    def __init__(self, page_func, pages : int, previous_emoji="⬅️", next_emoji="➡️", userid=None):
         self.previous_emoji = previous_emoji
         self.next_emoji = next_emoji
         self.message = None
@@ -35,7 +38,7 @@ class ScrollableActivePanel(ActivePanel):
         await message.add_reaction(self.previous_emoji)
         await message.add_reaction(self.next_emoji)
         
-    async def on_reaction(self, client, reaction, user):
+    async def on_reaction(self, client : HSBot, reaction : discord.Reaction, user : discord.User):
         changed = False
         
         if self.pages >= 2:
@@ -66,23 +69,23 @@ class YesNoActivePanel(ActivePanel):
         self.decline_emoji = decline_emoji
         self.userid = userid
         
-    async def init(self, client, message):
+    async def init(self, client : HSBot, message : discord.Message):
         self.message = message
         await message.add_reaction(self.confirm_emoji)
         await message.add_reaction(self.decline_emoji)
         
-    async def on_reaction(self, client, reaction, user):
+    async def on_reaction(self, client : HSBot, reaction : discord.Reaction, user : discord.User):
         if str(reaction.emoji) == self.confirm_emoji:
             await self.on_accept(client, reaction, user)
         
         elif str(reaction.emoji) == self.decline_emoji:
             await self.on_decline(client, reaction, user)
             
-    async def on_decline(self, client, reaction, user):
+    async def on_decline(self, client : HSBot, reaction : discord.Reaction, user : discord.User):
         if self._on_decline is not None:
             return await self._on_decline(self, client, reaction, user)
     
-    async def on_accept(self, client, reaction, user):
+    async def on_accept(self, client : HSBot, reaction : discord.Reaction, user : discord.User):
         if self._on_accept is not None:
             return await self._on_accept(self, client, reaction, user)
 
@@ -93,9 +96,9 @@ class InputActivePanel(ActivePanel):
         self.message = None
         self.userid = userid
         
-    async def init(self, client, message):
+    async def init(self, client : HSBot, message : discord.Message):
         self.message = message
         
-    async def on_message(self, client, message):
+    async def on_message(self, client : HSBot, message : discord.Message):
         await self.input_func(message)
         

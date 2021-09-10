@@ -27,7 +27,7 @@ def authenticate():
     return drive
 
 
-def get_gdrive_folder_named(folder_name):
+def get_gdrive_folder_named(folder_name : str):
     """
     If a google drive folder with a given name exists in the bot's account, it is returned, otherwise return None
     """
@@ -39,7 +39,7 @@ def get_gdrive_folder_named(folder_name):
             return folder
     return None
 
-def create_gdrive_folder(folder_name):
+def create_gdrive_folder(folder_name : str):
     """
     Creates google drive foler with a given name, inside the master folder
     """
@@ -48,7 +48,7 @@ def create_gdrive_folder(folder_name):
     folder.Upload()
 
 
-def send_files(file_name, folder_name):
+def send_files(file_name : str, folder_name : str):
     """
     Sends file to google drive folder, assuming first two characters in file name are '.\'
     Returns: 

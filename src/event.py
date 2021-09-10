@@ -1,4 +1,6 @@
 import datetime
+from typing import Optional
+from client import HSBot
 import discord
 import logging
 import traceback
@@ -16,27 +18,27 @@ class Event(ActivePanel):
 
     def __init__(self, name, description, start, duration, repeat, author, roles, delete_emoji=DELETE, userid=None):
         self.userid = userid
-        self.message = None
-        self.name = name
-        self.description = description
+        self.message : Optional[discord.Message] = None
+        self.name : str = name
+        self.description : str = description
         self.start = start
         self.duration = duration
         self.repeat = repeat
         self.author = author
         self.roles = roles
-        self.accepted = []
-        self.declined = []
-        self.tentative = []
+        self.accepted : list[discord.User] = []
+        self.declined : list[discord.User] = []
+        self.tentative : list[discord.User] = []
         self.delete_emoji = delete_emoji
         
-    async def can_interact(self, client, user):
+    async def can_interact(self, client : HSBot, user : discord.User):
         if len(self.roles) == 0: return True
         for role in user.roles:
             if role in self.roles:
                 return True
         return await super().can_interact(client, user)
         
-    async def init(self, client, message):
+    async def init(self, client : HSBot, message : discord.Message):
         self.message = message
         for role in self.roles:
             for user in role.members:
@@ -49,7 +51,7 @@ class Event(ActivePanel):
         await self.update_page()
         
         if self.repeat:
-            async def task(client):
+            async def task(client : HSBot):
                 logging.info("Activating event repetition")
                 try:
                     await client.remove_active_panel(message)
@@ -124,7 +126,7 @@ class Event(ActivePanel):
             c += 1
         return embed
     
-    async def on_accept(self, client, reaction, user):
+    async def on_accept(self, client: HSBot, reaction : discord.Reaction, user : discord.User):
         if user in self.declined:
             self.declined.remove(user)
         if user in self.tentative:
@@ -133,7 +135,7 @@ class Event(ActivePanel):
             self.accepted.append(user)
         await self.update_page()
 
-    async def on_decline(self, client, reaction, user):
+    async def on_decline(self, client: HSBot, reaction : discord.Reaction, user : discord.User):
         if user not in self.declined:
             self.declined.append(user)
         if user in self.tentative:
@@ -142,7 +144,7 @@ class Event(ActivePanel):
             self.accepted.remove(user)
         await self.update_page()
 
-    async def on_tentative(self, client, reaction, user):
+    async def on_tentative(self, client: HSBot, reaction : discord.Reaction, user : discord.User):
         if user in self.declined:
             self.declined.remove(user)
         if user not in self.tentative:
@@ -151,7 +153,7 @@ class Event(ActivePanel):
             self.accepted.remove(user)
         await self.update_page()
 
-    async def on_reaction(self, client, reaction, user):
+    async def on_reaction(self, client: HSBot, reaction : discord.Reaction, user : discord.User):
         if str(reaction.emoji) == self.delete_emoji and user.id == self.userid:
             await self.message.delete()
             return
@@ -179,7 +181,7 @@ class Event(ActivePanel):
                 await reaction.remove(user)
 
 
-def get_ending(i):
+def get_ending(i : int):
     if i % 10 == 1 and i != 11:
         return "st"
     if i % 10 == 2 and i != 12:

@@ -8,36 +8,11 @@ from discord.ext import tasks
 from cfg import WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
 
 
-@tasks.loop(seconds=5)
-async def task_worker(self):
-    past = []
-    for task in self.tasks:
-        if task["start"] <= datetime.datetime.now():
-            await task["callback"](self)
-            if task["once"] == True:
-                past.append(task)
-            elif task["end"] <= datetime.datetime.now():
-                past.append(task)
-    for task in past:
-        self.tasks.remove(task)
-        
-@tasks.loop(minutes=1)
-async def cleanup_active_panels(client):
-    t = time.time()
-    to_remove = []
-    for key in client.active_panels:
-        for panel in client.active_panels[key]:
-            if (t - client.active_panels[key][panel]["timestamp"]) >= client.active_panels[key][panel]["timeout"]*60:
-                to_remove.append((key, panel))
-    for key, panel in to_remove:
-        await client.active_panels[key][panel]["panel"].on_deactivate(client)
-        del client.active_panels[key][panel]
-
 
 class HSBot(discord.Client):
     """HS bot client class"""
 
-    def __init__(self, prefix, sprint_path="."):
+    def __init__(self, prefix : str, sprint_path="."):
         intents = discord.Intents.default()
         intents.members = True
         super().__init__(intents=intents)
@@ -253,3 +228,30 @@ class HSBot(discord.Client):
             
         for handler in self.reactions:
             await self.reactions[handler]["callback"](self, reaction, user)
+
+
+
+@tasks.loop(seconds=5)
+async def task_worker(self : HSBot):
+    past = []
+    for task in self.tasks:
+        if task["start"] <= datetime.datetime.now():
+            await task["callback"](self)
+            if task["once"] == True:
+                past.append(task)
+            elif task["end"] <= datetime.datetime.now():
+                past.append(task)
+    for task in past:
+        self.tasks.remove(task)
+        
+@tasks.loop(minutes=1)
+async def cleanup_active_panels(client : HSBot):
+    t = time.time()
+    to_remove = []
+    for key in client.active_panels:
+        for panel in client.active_panels[key]:
+            if (t - client.active_panels[key][panel]["timestamp"]) >= client.active_panels[key][panel]["timeout"]*60:
+                to_remove.append((key, panel))
+    for key, panel in to_remove:
+        await client.active_panels[key][panel]["panel"].on_deactivate(client)
+        del client.active_panels[key][panel]

@@ -2,7 +2,7 @@ import os
 import pickle
 import pandas as pd
 
-import client
+from client import HSBot
 
 import aiohttp
 import discord
@@ -18,25 +18,25 @@ from cfg import SPRINT_PREFIX, NAMES_PREFIX, PROJECTS_PREFIX, HEADER_NAME_PAIRS,
 
 from gdrive import send_files
 
-class type(Enum):
+class Type(Enum):
     sprint = auto()
     name_pairs = auto()
     projects = auto()
 
 class CollectYesNo(YesNoActivePanel):
-    def __init__(self, attachment, type, userid=None):
+    def __init__(self, attachment : discord.Attachment, type : Type, userid=None):
         super().__init__(userid=userid)
-        self.attachment = attachment
-        self.type = type
+        self.attachment : discord.Attachment = attachment
+        self.type : Type = type
 
-    async def on_accept(self, client, reaction, user):
+    async def on_accept(self, client : HSBot, reaction : discord.Reaction, user : discord.User):
         name = os.path.join(client.sprint_path, self.attachment.filename)
         result = await download_file(self.attachment.url, name)
 
         content = reaction.message.content
         project_name = reaction.message.channel.name
 
-        if self.type == type.sprint:
+        if self.type == Type.sprint:
             if result:
                 if send_files(name, project_name):
                     embed = discord.Embed(title="Success!", color=SUCCESS_COLOR)
@@ -49,7 +49,7 @@ class CollectYesNo(YesNoActivePanel):
                 embed = discord.Embed(title="Fail!", color=ERROR_COLOR)
                 embed.description = "Download failed"
 
-        if self.type == type.name_pairs:
+        if self.type == Type.name_pairs:
             if result:
                 embed = discord.Embed(title="Success!", color=SUCCESS_COLOR)
                 embed.description = "Downloaded name pairs"
@@ -59,7 +59,7 @@ class CollectYesNo(YesNoActivePanel):
                 embed = discord.Embed(title="Fail!", color=ERROR_COLOR)
                 embed.description = "Download failed"
 
-        if self.type == type.projects:
+        if self.type == Type.projects:
             if result:
                 embed = discord.Embed(title="Success!", color=SUCCESS_COLOR)
                 embed.description = "Downloaded new projects file. Analising project data and attempting to create projects"
@@ -77,10 +77,10 @@ class CollectYesNo(YesNoActivePanel):
         await reaction.message.clear_reactions()
 
         
-    async def on_decline(self, client, reaction, user):
+    async def on_decline(self, client : HSBot, reaction : discord.Reaction, user : discord.User):
         await self.message.delete()
 
-async def create_new_projects(new_pair_name, channel):
+async def create_new_projects(new_pair_name : str, channel : discord.TextChannel):
     # read excel and convert to list
     df = pd.read_excel(new_pair_name, header=HEADER_PROJECTS, squeeze=True)
     new_projects_data = df.values.tolist()
@@ -107,7 +107,7 @@ async def create_new_projects(new_pair_name, channel):
         embed.description = f"No server members maching these names could be found. Add them to their projects by giving them the project role.\n{invalid_names}"
         await channel.send(embed=embed)
 
-async def store_new_pairs(new_pair_name, channel):
+async def store_new_pairs(new_pair_name : str, channel : discord.TextChannel):
     # read excel and convert to list
     df = pd.read_excel(new_pair_name, header=HEADER_NAME_PAIRS, usecols=COLS_NAME_PAIRS, squeeze=True)
     new_pairs = df.values.tolist()
@@ -154,7 +154,7 @@ async def store_new_pairs(new_pair_name, channel):
     file_to_store = open(NAME_PAIRS_FILE, 'wb')
     pickle.dump(known_pairs, file_to_store)
 
-async def download_file(url, path):
+async def download_file(url : str, path : str):
     """Download a file from the internet
 
     Args:

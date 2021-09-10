@@ -5,6 +5,7 @@ import re
 import shlex
 
 import discord
+from client import HSBot
 
 from activepanel import ActivePanel
 from panels import YesNoActivePanel, InputActivePanel, ScrollableActivePanel
@@ -24,13 +25,15 @@ class EventCreator(ActivePanel):
     WEEKDAYS = ("monday", "tuesday", "wednesday",
                 "thursday", "friday", "saturday", "sunday")
 
-    def __init__(self, channel, pages, userid=None):
-        self.dap = YesNoActivePanel(self.on_accept, self.on_decline, userid=userid)
+    def __init__(self, channel: discord.channel.TextChannel, pages, userid=None):
+        self.dap = YesNoActivePanel(
+            self.on_accept, self.on_decline, userid=userid)
         self.iap = InputActivePanel(self.on_message, userid=userid)
-        self.sap = ScrollableActivePanel(self.on_page_change, pages, userid=userid)
+        self.sap = ScrollableActivePanel(
+            self.on_page_change, pages, userid=userid)
         self.userid = userid
-        self.current_channel = channel
-        self.selected_channel = channel
+        self.current_channel: discord.channel.TextChannel = channel
+        self.selected_channel: discord.channel.TextChannel = channel
         self.author = None
         self.event_name = None
         self.event_description = None
@@ -38,22 +41,22 @@ class EventCreator(ActivePanel):
         self.event_duration = None
         self.event_repeat = "Never"
         self.role_mentions = ()
-        
-    async def init(self, client, message):
+
+    async def init(self, client: HSBot, message: discord.Message):
         self.message = message
         await self.dap.init(client, message)
         await self.iap.init(client, message)
         await self.sap.init(client, message)
-        
-    async def on_reaction(self, client, reaction, user):
+
+    async def on_reaction(self, client: HSBot, reaction: discord.Reaction, user: discord.User):
         await self.dap.on_reaction(client, reaction, user)
         await self.iap.on_reaction(client, reaction, user)
         await self.sap.on_reaction(client, reaction, user)
-        
-    async def on_decline(self, yn, client, reaction, user):
-        await yn.message.delete() 
 
-    async def on_page_change(self, scrollable):
+    async def on_decline(self, yn: YesNoActivePanel, client: HSBot, reaction: discord.Reaction, user: discord.User):
+        await yn.message.delete()
+
+    async def on_page_change(self, scrollable: ScrollableActivePanel):
         path = os.path.join(basedir(__file__), "rsrc",
                             "event_creator", f"page{scrollable.page+1}.json")
         with open(path, "r") as f:
@@ -82,7 +85,7 @@ class EventCreator(ActivePanel):
                 value = ", ".join(map(lambda r: r.name, self.role_mentions))
             else:
                 value = "None"
-                
+
         elif scrollable.page == 6:
             value = self.event_repeat
 
@@ -90,7 +93,7 @@ class EventCreator(ActivePanel):
 
         return base
 
-    async def on_message(self, client, message):
+    async def on_message(self, client: HSBot, message: discord.Message):
         if self.sap.page == 0:
             def verify_c(channel):
                 if not isinstance(channel, discord.channel.TextChannel):
@@ -146,7 +149,7 @@ class EventCreator(ActivePanel):
             ))
             self.role_mentions = valid_roles
             await self.message.edit(embed=await self.sap.page_func())
-            
+
         elif self.sap.page == 6:
             repeat = self.parse_repeat(message.content)
             if repeat is not None:
@@ -169,14 +172,15 @@ class EventCreator(ActivePanel):
             mentions = " ".join(map(lambda r: r.mention, self.role_mentions))
             msg = await self.selected_channel.send(mentions, embed=embed)
             event.message = msg
-            duration = (self.event_start - datetime.datetime.now() + self.event_duration).total_seconds() / 60 + 10
+            duration = (self.event_start - datetime.datetime.now() +
+                        self.event_duration).total_seconds() / 60 + 10
             logging.info(duration)
             await client.add_active_panel(msg, event, duration)
         else:
             await client.send_error(yn.message.channel, "Not all required fields are filled out")
 
     @staticmethod
-    def parse_time(string, half):
+    def parse_time(string: str, half):
         time = string.split(":")
         if len(time) == 1:
             hours, minutes = int(time[0]), 0
@@ -187,7 +191,7 @@ class EventCreator(ActivePanel):
         return hours, minutes
 
     @staticmethod
-    def parse_duration(string):
+    def parse_duration(string: str):
         string = string.strip().lower()
         match = __class__.PATTERN4.match(string)
         if match is not None:
@@ -205,9 +209,9 @@ class EventCreator(ActivePanel):
                     minutes = int(minutes)
                 return datetime.timedelta(hours=hours, minutes=minutes)
         return None
-    
+
     @staticmethod
-    def parse_repeat(string):
+    def parse_repeat(string: str):
         string = string.strip().lower()
         if string == "daily" or string == "1":
             return "Daily"
@@ -222,7 +226,7 @@ class EventCreator(ActivePanel):
         return None
 
     @staticmethod
-    def parse_date(string):
+    def parse_date(string: str):
         string = string.strip().lower()
         if string == "now":
             return datetime.datetime.now()
@@ -267,7 +271,7 @@ class EventCreator(ActivePanel):
                 return date
 
 
-async def command_event(self, message, args):
+async def command_event(self, message: discord.Message, args: list[str]):
     channel = await message.author.create_dm()
 
     panels = await self.get_active_panels(channel.id, message.author)
@@ -281,4 +285,3 @@ async def command_event(self, message, args):
     creator.author = message.author
 
     await self.add_active_panel(msg, creator)
-
