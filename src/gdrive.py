@@ -1,3 +1,4 @@
+import logging
 from pydrive2.auth import GoogleAuth
 from pydrive2.drive import GoogleDrive
 
@@ -6,6 +7,22 @@ from cfg import MASTER_FOLDER_ID
 
 def authenticate():
     gauth = GoogleAuth()
+
+    if gauth.access_token_expired:
+        logging.log(logging.INFO,"Access token expired. Renewing access token based on existing refresh token.")
+        try:
+            gauth.LoadCredentialsFile()
+            gauth.Refresh()
+            logging.log(logging.INFO, "Access token automatically renewed.")
+        except:
+            auth_url = gauth.GetAuthUrl()
+            logging.log(logging.WARNING, f"Need new refresh token. Visit URL below, sign in to the bot's account, and input the code.\n{auth_url}")
+            code = input("Code: ") # NOT GOOD, TEMPORARY FIX
+            gauth.Auth(code)
+        finally:
+            gauth.SaveCredentialsFile()
+
+
     drive = GoogleDrive(gauth)
     return drive
 
