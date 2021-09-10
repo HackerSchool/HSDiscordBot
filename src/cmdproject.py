@@ -49,11 +49,11 @@ class ProjectCreator(ActivePanel):
         self.project_name: Optional[str] = None
         self.members: discord.Member = []
 
-    async def init(self, message: discord.Message):
+    async def init(self, client: HSBot, message: discord.Message):
         self.message = message
-        await self.dap.init(message)
-        await self.iap.init(message)
-        await self.sap.init(message)
+        await self.dap.init(client, message)
+        await self.iap.init(client, message)
+        await self.sap.init(client, message)
 
     async def on_reaction(self, client: HSBot, reaction: discord.Reaction, user: discord.User):
         await self.dap.on_reaction(client, reaction, user)
@@ -85,8 +85,7 @@ class ProjectCreator(ActivePanel):
 
         elif self.sap.page == 1:
             new_participant = message.content
-            new_member = member_from_participant(
-                self, self.project_server, new_participant)
+            new_member = member_from_participant(self.project_server, new_participant)
             if new_member is None:
                 invalid_participant_embed = discord.Embed(color=ERROR_COLOR)
                 invalid_participant_embed.title = "Member not found!"
@@ -107,12 +106,11 @@ class ProjectCreator(ActivePanel):
             yn = CreateProjectYesNo(
                 self.project_name, self.members, self.project_server, dm=True, userid=user.id)
             await client.add_active_panel(msg_scc, yn)
-            print(msg_scc)
         else:
             await client.send_error(yn.message.channel, "Project name missing")
 
 
-async def command_project(self, message: discord.Message, args: list[str]):
+async def command_project(self: HSBot, message: discord.Message, args: list[str]):
     if len(args) == 0:
         await project_help(self, message)
 
@@ -128,8 +126,7 @@ async def command_project(self, message: discord.Message, args: list[str]):
                 msg = await channel.fetch_message(panel.message.id)
                 await self.remove_active_panel(msg)
 
-            creator = ProjectCreator(
-                message.channel.guild, 2, message.author.id)
+            creator = ProjectCreator(message.channel.guild, 2, message.author.id)
             msg = await channel.send(embed=await creator.sap.page_func())
             creator.message = msg
             creator.author = message.author

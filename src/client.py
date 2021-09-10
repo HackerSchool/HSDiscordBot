@@ -93,7 +93,7 @@ class HSBot(discord.Client):
             return False
         return await self.active_panels[key][message.id]["panel"].can_interact(self, user)
 
-    async def add_active_panel(self, message, panel, timeout=5):
+    async def add_active_panel(self, message : discord.Message, panel, timeout=5):
         """Add an active panel"""
         key = message.channel.id if message.guild is None else message.guild.id
         if key not in self.active_panels:

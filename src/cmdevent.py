@@ -271,7 +271,7 @@ class EventCreator(ActivePanel):
                 return date
 
 
-async def command_event(self, message: discord.Message, args: list[str]):
+async def command_event(self : HSBot, message: discord.Message, args: list[str]):
     channel = await message.author.create_dm()
 
     panels = await self.get_active_panels(channel.id, message.author)

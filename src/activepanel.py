@@ -21,6 +21,8 @@ class ActivePanel:
         self.message = message
     
     async def can_interact(self, client : HSBot, user : discord.User):
+        if self.userid is None:
+            return True
         if self.userid is not None:
             return user.id == self.userid 
         if self.message is not None:

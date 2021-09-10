@@ -6,6 +6,7 @@ import cmdevent
 import cmdhelp
 import cmdpresent
 import cmdproject
+import cmdpoll
 import sprint
 
 
@@ -15,6 +16,7 @@ def setup(client : client.HSBot):
     client.add_command("event", cmdevent.command_event)
     client.add_command("present", cmdpresent.command_present)
     client.add_command("project", cmdproject.command_project)
+    client.add_command("poll", cmdpoll.command_poll)
 
     client.add_custom_message_handler("sprint", sprint.handler_attachment)
     sprint.add_member_name_change(client)

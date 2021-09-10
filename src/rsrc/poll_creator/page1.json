@@ -1,0 +1,11 @@
+{
+    "title": "Poll Creator",
+    "color": 7190903,
+    "fields": [
+        {
+            "name": "Poll Name",
+            "value": "",
+            "inline": false
+        }
+    ]
+}
