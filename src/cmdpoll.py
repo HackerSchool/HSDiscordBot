@@ -7,9 +7,11 @@ import os
 from activepanel import ActivePanel
 from client import HSBot
 from panels import DeletableActivePanel, YesNoActivePanel, ScrollableActivePanel, InputActivePanel
-from cfg import ERROR_COLOR, SUCCESS_COLOR, WARNING_COLOR
+from cfg import ERROR_COLOR, NUMBERS, SUCCESS_COLOR, WARNING_COLOR
 
 from poll import Poll
+
+
 
 class CreatePollYesNo(YesNoActivePanel):
     def __init__(self, guild: discord.Guild, name: str, options: list[str], channel: discord.TextChannel, userid=None, dm=False):
@@ -38,6 +40,14 @@ class CreatePollYesNo(YesNoActivePanel):
         if self.dm == False:
             await reaction.message.clear_reactions()
 
+
+async def err_too_many_options(client: HSBot, channel: discord.TextChannel, n_options: int, max_options : int):
+    invalid_input_embed = discord.Embed(color=ERROR_COLOR)
+    invalid_input_embed.title = "Invalid input!"
+    invalid_input_embed.description = f"\"{n_options}\" is too many options. {max_options} max!"
+    bad_options_msg = await channel.send(embed=invalid_input_embed)
+    bad_options_ap = DeletableActivePanel()
+    await client.add_active_panel(bad_options_msg, bad_options_ap)
 
 class PollCreator(ActivePanel):
     def __init__(self, guild: discord.Guild, channel : discord.TextChannel, pages, userid=None):
@@ -133,9 +143,14 @@ class PollCreator(ActivePanel):
                     bad_options_ap = DeletableActivePanel()
                     await client.add_active_panel(bad_options_msg, bad_options_ap)
                 else:
-                    self.sap.pages = 3 + self.number_of_options
-                    self.options = ["None"]*self.number_of_options
-                    await self.message.edit(embed=await self.sap.page_func())
+                    max_options = len(NUMBERS)-1
+                    if self.number_of_options > max_options:  # no more emojis
+                        await err_too_many_options(client, message.channel, self.number_of_options, max_options)
+                        self.number_of_options = 0
+                    else:  # success
+                        self.sap.pages = 3 + self.number_of_options
+                        self.options = ["None"]*self.number_of_options
+                        await self.message.edit(embed=await self.sap.page_func())
 
             except ValueError:
                 invalid_input_embed = discord.Embed(color=ERROR_COLOR)
@@ -181,6 +196,12 @@ async def command_poll(client : HSBot, message : discord.Message, args : list[st
 
     elif len(args) > 2:
         name, *options = args
+
+        max_options = len(NUMBERS)-1
+        if len(options) > max_options:  # no more emojis
+            await err_too_many_options(client, message.channel, len(options), max_options)
+            return
+
         msg_scc = await message.channel.send(embed=discord.Embed(title="Are you sure you want to create this poll?", description = "\n".join([name, ", ".join(options)])))
         yn = CreatePollYesNo(
             message.guild, name, options, message.channel, userid=None, dm=False)

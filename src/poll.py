@@ -31,7 +31,7 @@ class Poll(ActivePanel):
         await self.cap.on_reaction(client, reaction, user)
 
     async def on_choose(self, client : HSBot, reaction : discord.Reaction, user: discord.User, index : int):
-        index -= 1 # Option numbers start at 1, indexes start at 0
+        index -= 1 # Option numbers start at 1, indexes start at 0. function receives option number
         await reaction.remove(user)
         if index >= 0 and index < len(self.totals):
             for vote in self.votes:
@@ -45,7 +45,7 @@ class Poll(ActivePanel):
     def embed(self) -> discord.Embed:
         embed = discord.Embed(title=self.title)
         for i in range(0, len(self.options)):
-            embed.add_field(name=self.options[i], value=str(self.totals[i]))
+            embed.add_field(name="`" + str(i+1) + "` " + self.options[i], value=str(self.totals[i]))
         return embed
     
     async def send_msg(self) -> discord.Message:
