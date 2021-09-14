@@ -5,8 +5,7 @@ from activepanel import ActivePanel
 from choosable import Choosable
 from panels import DeletableActivePanel
 from client import HSBot
-from sprint import Type
-from cfg import NUMBERS
+from cfg import NUMBERS, SUCCESS_COLOR
 
 class Poll(ActivePanel):
     
@@ -44,6 +43,7 @@ class Poll(ActivePanel):
 
     def embed(self) -> discord.Embed:
         embed = discord.Embed(title=self.title)
+        embed.colour = SUCCESS_COLOR
         for i in range(0, len(self.options)):
             embed.add_field(name="`" + str(i+1) + "` " + self.options[i], value=str(self.totals[i]))
         return embed

@@ -59,7 +59,7 @@ def send_files(file_name : str, folder_name : str):
     gfile = drive.CreateFile({'title': file_name})
 
     folders = drive.ListFile(
-        {'q': "title='" + folder_name + "' and mimeType='application/vnd.google-apps.folder' and '{MASTER_FOLDER_ID}' in parents and trashed=false"}).GetList()
+        {'q': f"title='{folder_name}' and mimeType='application/vnd.google-apps.folder' and '{MASTER_FOLDER_ID}' in parents and trashed=false"}).GetList()
     for folder in folders:
         if folder['title'].lower() == folder_name.lower():
             

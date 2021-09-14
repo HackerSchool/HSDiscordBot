@@ -186,7 +186,7 @@ async def handler_attachment(self, message):
         if SPRINT_PREFIX in attachment.filename.lower():
             if message.channel.category.name.lower() == PROJECTS_CATEGORY.lower():
                 msg = await self.send_info(message.channel, f"Should I capture '{attachment.filename}' as a sprint report?")
-                yn = CollectYesNo(attachment, type.sprint, userid=message.author.id)
+                yn = CollectYesNo(attachment, Type.sprint, userid=message.author.id)
                 await self.add_active_panel(msg, yn)
             else:
                 await self.send_info(message.channel, f"If you mean to register '{attachment.filename}' as a sprint report, "
@@ -196,12 +196,12 @@ async def handler_attachment(self, message):
 
         if NAMES_PREFIX in attachment.filename.lower():
             msg = await self.send_info(message.channel, f"Should I store name pairs in '{attachment.filename}' to replace newcomers' names?")
-            yn = CollectYesNo(attachment, type.name_pairs, userid=message.author.id)
+            yn = CollectYesNo(attachment, Type.name_pairs, userid=message.author.id)
             await self.add_active_panel(msg, yn)
 
         if PROJECTS_PREFIX in attachment.filename.lower():
             msg = await self.send_info(message.channel, f"Should I use '{attachment.filename}' to create new projects?")
-            yn = CollectYesNo(attachment, type.projects, userid=message.author.id)
+            yn = CollectYesNo(attachment, Type.projects, userid=message.author.id)
             await self.add_active_panel(msg, yn)
 
 
