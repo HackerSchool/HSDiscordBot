@@ -3,7 +3,7 @@ import json
 import discord
 
 
-def json_to_embed(string : str):
+def json_to_embed(string : str) -> discord.Embed:
     """Convert a json string to a discord embed
 
     Args:

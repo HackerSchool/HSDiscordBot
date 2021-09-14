@@ -25,7 +25,7 @@ class HSBot(discord.Client):
         self.custom_msg_handlers = {}
         self.data = {}
         self.tasks = []
-        self.description = f"{self.prefix}hello"
+        self.description = f"{self.prefix}help"
         self.sprint_path = sprint_path
 
     def schedule(self, start, end, callback, once=True):

@@ -20,7 +20,7 @@ class CreatePollYesNo(YesNoActivePanel):
         self.poll_name: Optional[str] = name
         self.options : list[str] = options
         self.poll_channel: discord.channel.TextChannel = channel
-        self.dm = dm
+        self.dm : bool = dm
 
     async def on_accept(self, client: HSBot, reaction: discord.Reaction, user):
         
@@ -36,6 +36,7 @@ class CreatePollYesNo(YesNoActivePanel):
         channel = reaction.message.channel
         msgreff_embed = discord.Embed(color=WARNING_COLOR)
         msgreff_embed.title = "New project creation aborted!"
+        msgreff_embed.colour = ERROR_COLOR
         await channel.send(embed=msgreff_embed)
         if self.dm == False:
             await reaction.message.clear_reactions()
@@ -45,6 +46,7 @@ async def err_too_many_options(client: HSBot, channel: discord.TextChannel, n_op
     invalid_input_embed = discord.Embed(color=ERROR_COLOR)
     invalid_input_embed.title = "Invalid input!"
     invalid_input_embed.description = f"\"{n_options}\" is too many options. {max_options} max!"
+    invalid_input_embed.colour = ERROR_COLOR
     bad_options_msg = await channel.send(embed=invalid_input_embed)
     bad_options_ap = DeletableActivePanel()
     await client.add_active_panel(bad_options_msg, bad_options_ap)
@@ -84,7 +86,7 @@ class PollCreator(ActivePanel):
         await yn.message.delete()
 
     async def on_accept(self, yn, client: HSBot, reaction: discord.Reaction, user: discord.User):
-        msg_scc = await reaction.message.channel.send(embed=discord.Embed(title="Are you sure you want to create this poll?", description = str(self)))
+        msg_scc = await reaction.message.channel.send(embed=discord.Embed(title="Are you sure you want to create this poll?", colour=WARNING_COLOR, description = str(self)))
         yn = CreatePollYesNo(
             self.poll_server, self.poll_name, self.options, self.selected_channel, userid=user.id, dm=True)
         await client.add_active_panel(msg_scc, yn)
@@ -139,6 +141,7 @@ class PollCreator(ActivePanel):
                     invalid_input_embed = discord.Embed(color=ERROR_COLOR)
                     invalid_input_embed.title = "Invalid input!"
                     invalid_input_embed.description = f"\"{number_of_options_str}\" is not a positive integer. Please input a positive integer as the number of options."
+                    invalid_input_embed.colour = ERROR_COLOR
                     bad_options_msg = await message.channel.send(embed=invalid_input_embed)
                     bad_options_ap = DeletableActivePanel()
                     await client.add_active_panel(bad_options_msg, bad_options_ap)
@@ -156,6 +159,7 @@ class PollCreator(ActivePanel):
                 invalid_input_embed = discord.Embed(color=ERROR_COLOR)
                 invalid_input_embed.title = "Unrecognized input!"
                 invalid_input_embed.description = f"\"{number_of_options_str}\" is not a valid integer. Please input a positive integer as the number of options."
+                invalid_input_embed.colour = ERROR_COLOR
                 bad_options_msg = await message.channel.send(embed=invalid_input_embed)
                 bad_options_ap = DeletableActivePanel()
                 await client.add_active_panel(bad_options_msg, bad_options_ap)
@@ -202,7 +206,7 @@ async def command_poll(client : HSBot, message : discord.Message, args : list[st
             await err_too_many_options(client, message.channel, len(options), max_options)
             return
 
-        msg_scc = await message.channel.send(embed=discord.Embed(title="Are you sure you want to create this poll?", description = "\n".join([name, ", ".join(options)])))
+        msg_scc = await message.channel.send(embed=discord.Embed(title="Are you sure you want to create this poll?", colour=WARNING_COLOR, description = "\n".join([name, ", ".join(options)])))
         yn = CreatePollYesNo(
             message.guild, name, options, message.channel, userid=None, dm=False)
         await client.add_active_panel(msg_scc, yn)
