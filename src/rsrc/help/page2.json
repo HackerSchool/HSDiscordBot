@@ -8,7 +8,7 @@
         },
         {
             "name": "`poll` [name] [option_1] [option_2] .. [option_n]",
-            "value": "`poll` sends the user a DM with a project creation interface.\n`poll name option_1 ... option_n` creates a poll in the current text channel, with the given name and options.\nThe number of options must not exceed 10. Poll votes can only be added or changed, not removed."
+            "value": "`poll` sends the user a DM with a project creation interface.\n`poll name option_1 ... option_n` creates a poll in the current text channel, with the given name and options.\nPolls are anonymous. The number of options must not exceed 10. Poll votes can only be added or changed, not removed."
         }
     ]
 }
