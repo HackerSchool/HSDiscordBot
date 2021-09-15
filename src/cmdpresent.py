@@ -90,8 +90,6 @@ async def command_present(client : HSBot, message : discord.Message, args : List
             return
         except NameError:
             logging.log(NameError)
-            pass
-
     
     embed = discord.Embed(title="Improper command usage!", color=ERROR_COLOR)
     embed.description = f"Arguments '{args}' are invalid."

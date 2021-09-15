@@ -4,6 +4,7 @@ from typing import Optional
 import discord
 from client import HSBot
 
+from utils import get_category_named, get_role_named, get_text_channel_named, get_voice_channel_named, member_from_participant
 from panels import DeletableActivePanel, YesNoActivePanel
 from cfg import PROJECTS_CATEGORY, WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR, MANAGEMENT_ROLES, MASTER_FOLDER_ID
 
@@ -49,58 +50,6 @@ async def del_proj_data(project_voice_channel : discord.VoiceChannel, project_te
     if project_folder is not None:
         project_folder['title'] = project_folder['title'] + '-CLOSED'
         project_folder.Upload()
-
-def get_role_named(guild, name : str):
-    """
-    If a role with a given name exists, it is returned, otherwise return None
-    """
-    for role in guild.roles:
-        if role.name.lower() == name.lower():
-            return role
-    return None
-
-
-def get_voice_channel_named(category : discord.CategoryChannel, name : str):
-    """
-    If a voice channel with a given name exists, it is returned, otherwise return None
-    """
-    for channel in category.voice_channels:
-        if channel.name.lower() == name.lower():
-            return channel
-    return None
-
-
-def get_text_channel_named(category : discord.CategoryChannel, name : str):
-    """
-    If a text channel with a given name exists, it is returned, otherwise return None
-    """
-    for channel in category.text_channels:
-        if channel.name.lower() == name.lower():
-            return channel
-    return None
-
-
-def get_category_named(guild : discord.Guild, name : str):
-    """
-    If a category with a given name exists, it is returned, otherwise return None
-    """
-    for category in guild.categories:
-        if category.name == name:
-            return category
-    return None
-
-def member_from_participant(guild : discord.Guild, participant : str):
-    def verify(member):
-        return participant.lower() in member.name.lower()
-
-    valid_members = tuple(filter(
-        verify,
-        guild.members
-    ))
-    if len(valid_members) == 1:
-        return valid_members[0]
-    else:
-        return None
 
 def did_you_mean_project(guild : discord.Guild, failed_name : str):
     def verify(project : str):
