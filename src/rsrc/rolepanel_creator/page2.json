@@ -1,0 +1,26 @@
+{
+    "title": "Role Panel Creator",
+    "color": 7190903,
+    "fields": [
+        {
+            "name": "Role Preview",
+            "value": "",
+            "inline": false
+        },
+        {
+            "name": "Pick Emoji",
+            "value": "empty",
+            "inline": false
+        },
+        {
+            "name": "Pick Role",
+            "value": "empty",
+            "inline": false
+        },
+        {
+            "name": "Pick Description",
+            "value": "empty",
+            "inline": false
+        }
+    ]
+}

@@ -158,7 +158,7 @@ class HSBot(discord.Client):
         embed.description = message
         return await channel.send(embed=embed)
 
-    async def send_error(self, channel, message):
+    async def send_error(self, channel, message, active_panel=None):
         """Send an error message
 
         Args:
@@ -167,7 +167,10 @@ class HSBot(discord.Client):
         """
         embed = discord.Embed(title="Error", color=ERROR_COLOR)
         embed.description = message
-        return await channel.send(embed=embed)
+        msg = await channel.send(embed=embed)
+        if active_panel != None:
+            await self.add_active_panel(msg, active_panel)
+        return msg
 
     async def on_ready(self):
         """Event triggered when the bot becomes online"""

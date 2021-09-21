@@ -8,6 +8,7 @@ import cmdpresent
 import cmdproject
 import cmdpoll
 import cmdused
+import cmdrolepanel
 import sprint
 
 
@@ -19,6 +20,8 @@ def setup(client : client.HSBot):
     client.add_command("project", cmdproject.command_project)
     client.add_command("poll", cmdpoll.command_poll)
     client.add_command("used", cmdused.command_used)
+    client.add_command("rolepanel", cmdrolepanel.command_rolepanel)
+    
 
     client.add_custom_message_handler("sprint", sprint.handler_attachment)
     sprint.add_member_name_change(client)

@@ -45,7 +45,7 @@ class CreatePollYesNo(YesNoActivePanel):
 async def err_too_many_options(client: HSBot, channel: discord.TextChannel, n_options: int, max_options : int):
     invalid_input_embed = discord.Embed(color=ERROR_COLOR)
     invalid_input_embed.title = "Invalid input!"
-    invalid_input_embed.description = f"\"{n_options}\" is too many options. {max_options} max!"
+    invalid_input_embed.description = f"**{n_options}** options is too many. {max_options} max!"
     invalid_input_embed.colour = ERROR_COLOR
     bad_options_msg = await channel.send(embed=invalid_input_embed)
     bad_options_ap = DeletableActivePanel()

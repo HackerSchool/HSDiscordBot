@@ -17,7 +17,7 @@ class Poll(ActivePanel):
         self.totals : list[int] = [0]*len(options)
         self.votes : list[TypedDict('Vote', {'user': discord.User, 'idx' : int})] = []
         self.channel : discord.TextChannel = channel
-        self.userid = None
+        self.userid = userid
         self.message : discord.Message
 
     async def init(self, client : HSBot, message : discord.Message):

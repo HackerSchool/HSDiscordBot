@@ -1,0 +1,16 @@
+{
+    "title": "Role Panel Creator",
+    "color": 7190903,
+    "fields": [
+        {
+            "name": "Text Channel",
+            "value": "",
+            "inline": false
+        },
+        {
+            "name": "Info",
+            "value": "Click the :arrow_forward: to add a new role. Click the :no_entry: to remove the role you're currently viewing",
+            "inline": false
+        }
+    ]
+}

@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Optional, Union
 import discord
 
 def basedir(f):
@@ -19,6 +19,23 @@ def get_role_named(guild: discord.Guild, name: str) -> Optional[discord.Role]:
             return role
     return None
 
+def role_from_incomplete_name(guild: discord.Guild, name: str) -> Union[discord.Role, None]:
+    def verify(role: discord.Role):
+        if name.isdigit():
+            if role.id == int(name):
+                return True
+        return name.lower() in role.name.lower()
+
+    valid_roles = tuple(filter(
+        verify,
+        guild.roles
+    ))
+    if len(valid_roles) == 1:
+        return valid_roles[0]
+    elif len(valid_roles) > 1:
+        return f"There are {len(valid_roles)} roles matching that name"
+    else:
+        return f"There is no role matching that name"
 
 def get_voice_channel_named(category: discord.CategoryChannel, name: str) -> Optional[discord.VoiceChannel]:
     """

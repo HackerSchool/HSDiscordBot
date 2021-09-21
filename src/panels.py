@@ -2,6 +2,9 @@ import discord
 from discord.message import Message
 from discord.reaction import Reaction
 from client import HSBot
+from jsonembed import json_to_embed
+from utils import basedir
+import os
 
 from activepanel import ActivePanel
 from cfg import DELETE, ACCEPT, DECLINE
@@ -59,6 +62,13 @@ class ScrollableActivePanel(ActivePanel):
     async def page_func(self):
         if self._page_func is not None:
             return await self._page_func(self)
+
+    def embed_from_json(self, folder : str, subfolder : str, page : int):
+        path = os.path.join(basedir(__file__), folder,
+                            subfolder, f"page{page}.json")
+        with open(path, "r") as f:
+            base_embed = json_to_embed(f.read())
+        return base_embed
         
 
 class YesNoActivePanel(ActivePanel):
