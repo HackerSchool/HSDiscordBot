@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import datetime
 import logging
+import pickle
 import shlex
 import time
 
@@ -12,7 +15,7 @@ from cfg import ERROR_COLOR, SUCCESS_COLOR, WARNING_COLOR
 class HSBot(discord.Client):
     """HS bot client class"""
 
-    def __init__(self, prefix : str, sprint_path="."):
+    def __init__(self, prefix : str, sprint_path=".", save_path="./data.pkl"):
         intents = discord.Intents.default()
         intents.members = True
         super().__init__(intents=intents)
@@ -27,6 +30,34 @@ class HSBot(discord.Client):
         self.tasks = []
         self.description = f"{self.prefix}help"
         self.sprint_path = sprint_path
+        self.save_path = save_path
+        
+    def save(self):
+        """Save the persistent active panels to a file"""
+        data = []
+        for key in self.active_panels:
+            for messageid in self.active_panels[key]:
+                if self.active_panels[key][messageid]["panel"].persistent:
+                    data.append((
+                        key, 
+                        messageid, 
+                        self.active_panels[key][messageid]["panel"],
+                        self.active_panels[key][messageid]["timestamp"],
+                        self.active_panels[key][messageid]["timeout"]
+                    ))     
+        with open(self.save_path, "wb") as f:
+            pickle.dump(data, f)
+            
+    def load(self):
+        """Load active panels from a file"""
+        with open(self.save_path, "rb") as f:
+            for key, messageid, panel, timestamp, timeout in pickle.load(f):
+                self.active_panels[key].setdefault({})
+                self.active_panels[key][messageid] = {
+                    "panel": panel,
+                    "timestamp": timestamp,
+                    "timeout": timeout
+                }
 
     def schedule(self, start, end, callback, once=True):
         """Schedule a task
@@ -177,6 +208,7 @@ class HSBot(discord.Client):
         logging.info(f"{self.user} is online")
         task_worker.start(self)
         cleanup_active_panels.start(self)
+        autosave.start(self)
         await self.change_presence(status=discord.Status.online, activity=discord.Game(self.description))
 
     async def on_message_delete(self, message):
@@ -258,3 +290,9 @@ async def cleanup_active_panels(client : HSBot):
     for key, panel in to_remove:
         await client.active_panels[key][panel]["panel"].on_deactivate(client)
         del client.active_panels[key][panel]
+        
+@tasks.loop(minutes=1)
+async def autosave(client : HSBot):
+    logging.info("Autosaving...")
+    client.save()
+    logging.info("Autosaving done!")
