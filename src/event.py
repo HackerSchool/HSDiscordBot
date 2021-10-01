@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime
 import logging
 import traceback
-from typing import Optional
+from typing import Any, Optional, Tuple
 
 import discord
 
@@ -23,17 +23,58 @@ class Event(ActivePanel):
     def __init__(self, name, description, start, duration, repeat, author, roles, delete_emoji=DELETE, userid=None):
         self.userid = userid
         self.message : Optional[discord.Message] = None
+        self._msg_guild_id : Tuple[int] | None = None
         self.name : str = name
         self.description : str = description
         self.start = start
         self.duration = duration
         self.repeat = repeat
         self.author = author
+        self._author_id: int | None = None
         self.roles = roles
+        self._roles_id : list[int] | None = None
         self.accepted : list[discord.User] = []
+        self._accepted_id : list[int] | None = None
         self.declined : list[discord.User] = []
+        self._declined_id : list[int] | None = None
         self.tentative : list[discord.User] = []
+        self._tentative_id : list[int] | None = None
         self.delete_emoji = delete_emoji
+        self.loaded = True
+        
+    @staticmethod
+    def _from_raw_data(uid, cid, mid, name, desc, start, dur, repeat, author, roles, accepted, declined, tentative, delete_emoji):
+        new_event = Event(name, desc, start, dur, repeat, None, None, delete_emoji, uid)
+        new_event.loaded = False
+        new_event._msg_channel_id = cid, mid 
+        new_event._author_id = author
+        new_event._roles_id = roles
+        new_event._accepted_id = accepted
+        new_event._declined_id = declined
+        new_event._tentative_id = tentative
+        return new_event
+    
+    def __reduce__(self) -> str | Tuple[Any, ...]:
+        return (self._from_raw_data, (
+            self.userid, 
+            self.message.channel.id if self.message is not None else None,
+            self.message.id if self.message is not None else None,
+            self.name,
+            self.description,
+            self.start,
+            self.duration,
+            self.repeat,
+            self.author.id if self.author is not None else None,
+            [role.id for role in self.roles] if self.roles is not None else [],
+            [user.id for user in self.accepted],
+            [user.id for user in self.declined],
+            [user.id for user in self.tentative],
+            self.delete_emoji
+        ))
+        
+    @property
+    def persistent(self):
+        return True
         
     async def can_interact(self, client : HSBot, user : discord.User):
         if len(self.roles) == 0: return True
@@ -43,16 +84,45 @@ class Event(ActivePanel):
         return await super().can_interact(client, user)
         
     async def init(self, client : HSBot, message : discord.Message):
-        self.message = message
-        for role in self.roles:
-            for user in role.members:
-                if user not in self.declined:
-                    self.declined.append(user)
-        await self.message.add_reaction(self.delete_emoji)
-        await self.message.add_reaction(ACCEPT)
-        await self.message.add_reaction(DECLINE)
-        await self.message.add_reaction(TENTATIVE)
-        await self.update_page()
+        if self.loaded:
+            self.message = message
+            for role in self.roles:
+                for user in role.members:
+                    if user not in self.declined:
+                        self.declined.append(user)
+            await self.message.add_reaction(self.delete_emoji)
+            await self.message.add_reaction(ACCEPT)
+            await self.message.add_reaction(DECLINE)
+            await self.message.add_reaction(TENTATIVE)
+            await self.update_page()
+        else:
+            logging.info("Loading active panel (loaded from file)")
+            if self._msg_channel_id is not None:
+                gid, mid = self._msg_channel_id
+                if gid is not None and mid is not None:
+                    channel = await client.fetch_channel(gid)
+                    self.message = await channel.fetch_message(mid)
+                    logging.info(f"Fetched message: {self.message}")
+                    client.add_message_to_cache(self.message)
+                    self.roles = []
+                    for role in await self.message.guild.fetch_roles():
+                        if role.id in self._roles_id:
+                            self.roles.append(role)
+                else:
+                    logging.error("No guild/message ID specified")
+                    return
+            else:
+                logging.error("No message ID specified")
+                return
+            if self._author_id is not None:
+                self.author = await client.fetch_user(self._author_id)
+            if self._accepted_id is not None:
+                self.accepted = [await client.fetch_user(uid) for uid in self._accepted_id]
+            if self._declined_id is not None:
+                self.declined = [await client.fetch_user(uid) for uid in self._declined_id]
+            if self._tentative_id is not None:
+                self.tentative = [await client.fetch_user(uid) for uid in self._tentative_id]
+            logging.info("Success!")
         
         if self.repeat:
             async def task(client : HSBot):

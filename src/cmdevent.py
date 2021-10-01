@@ -176,7 +176,6 @@ class EventCreator(ActivePanel):
             event.message = msg
             duration = (self.event_start - datetime.datetime.now() +
                         self.event_duration).total_seconds() / 60 + 10
-            logging.info(duration)
             await client.add_active_panel(msg, event, duration)
         else:
             await client.send_error(yn.message.channel, "Not all required fields are filled out")

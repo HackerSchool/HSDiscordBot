@@ -48,20 +48,21 @@ class HSBot(discord.Client):
         with open(self.save_path, "wb") as f:
             pickle.dump(data, f)
             
-    def load(self):
+    async def load(self):
         """Load active panels from a file"""
         logging.info("Loading...")
         try:
             with open(self.save_path, "rb") as f:
                 for key, messageid, panel, timestamp, timeout in pickle.load(f):
-                    self.active_panels[key].setdefault({})
+                    self.active_panels.setdefault(key, {})
                     self.active_panels[key][messageid] = {
                         "panel": panel,
                         "timestamp": timestamp,
                         "timeout": timeout
                     }
+                    await panel.init(self, None)
             logging.info("Loaded!")
-        except FileNotFoundError:
+        except (FileNotFoundError, EOFError):
             logging.warning(f"Couldn't load save file '{self.save_path}'")
 
     def schedule(self, start, end, callback, once=True):
@@ -109,6 +110,9 @@ class HSBot(discord.Client):
         if message.id not in self.active_panels[key]:
             return None
         return self.active_panels[key][message.id]["panel"]
+    
+    def add_message_to_cache(self, message):
+        self._connection._messages.append(message)
 
     async def get_active_panels(self, key, user):
         """Get the active panels for a specific user"""
@@ -211,7 +215,7 @@ class HSBot(discord.Client):
     async def on_ready(self):
         """Event triggered when the bot becomes online"""
         logging.info(f"{self.user} is online")
-        self.load()
+        await self.load()
         task_worker.start(self)
         cleanup_active_panels.start(self)
         autosave.start(self)
