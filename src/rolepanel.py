@@ -43,6 +43,10 @@ class RolePanel(ActivePanel):
         self.channel: discord.TextChannel = channel
         self.userid = userid
         self.message: discord.Message
+    
+    @property
+    def persistent(self):
+        return True
 
     async def init(self, client: HSBot, message: discord.Message):
         self.message = message
