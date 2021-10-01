@@ -50,14 +50,19 @@ class HSBot(discord.Client):
             
     def load(self):
         """Load active panels from a file"""
-        with open(self.save_path, "rb") as f:
-            for key, messageid, panel, timestamp, timeout in pickle.load(f):
-                self.active_panels[key].setdefault({})
-                self.active_panels[key][messageid] = {
-                    "panel": panel,
-                    "timestamp": timestamp,
-                    "timeout": timeout
-                }
+        logging.info("Loading...")
+        try:
+            with open(self.save_path, "rb") as f:
+                for key, messageid, panel, timestamp, timeout in pickle.load(f):
+                    self.active_panels[key].setdefault({})
+                    self.active_panels[key][messageid] = {
+                        "panel": panel,
+                        "timestamp": timestamp,
+                        "timeout": timeout
+                    }
+            logging.info("Loaded!")
+        except FileNotFoundError:
+            logging.warning(f"Couldn't load save file '{self.save_path}'")
 
     def schedule(self, start, end, callback, once=True):
         """Schedule a task
@@ -206,6 +211,7 @@ class HSBot(discord.Client):
     async def on_ready(self):
         """Event triggered when the bot becomes online"""
         logging.info(f"{self.user} is online")
+        self.load()
         task_worker.start(self)
         cleanup_active_panels.start(self)
         autosave.start(self)
