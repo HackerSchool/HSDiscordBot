@@ -1,0 +1,4 @@
+discord.py
+pydrive2
+pandas
+aiohttp

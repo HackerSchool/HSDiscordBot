@@ -2,6 +2,9 @@
 ## A Discord bot to help manage hackerschool events
 ____
 
+### Setup
+
+To get the bot running, run `pip3 install -r requirements.txt` to install all the required python packages and then `python3 src/hsbot.py [PREFIX]` to run the bot itself.
 
 ### General description
 
