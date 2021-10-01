@@ -1,5 +1,7 @@
-import discord
 import time
+
+import discord
+
 
 class ActivePanel:
     def __init__(self):

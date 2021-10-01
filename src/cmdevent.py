@@ -5,12 +5,12 @@ import re
 import shlex
 
 import discord
-from client import HSBot
 
 from activepanel import ActivePanel
-from panels import YesNoActivePanel, InputActivePanel, ScrollableActivePanel
+from client import HSBot
 from event import Event
 from jsonembed import json_to_embed
+from panels import InputActivePanel, ScrollableActivePanel, YesNoActivePanel
 from utils import basedir
 
 

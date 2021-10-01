@@ -1,8 +1,8 @@
 import discord
 
-from client import HSBot
 from activepanel import ActivePanel
 from cfg import NUMBERS
+from client import HSBot
 
 
 class Choosable(ActivePanel):

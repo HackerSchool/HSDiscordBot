@@ -1,13 +1,15 @@
 import datetime
-from typing import Optional
-from client import HSBot
-import discord
 import logging
 import traceback
+from typing import Optional
+
+import discord
 
 from activepanel import ActivePanel
+from cfg import (ACCEPT, DECLINE, ERROR_COLOR, SUCCESS_COLOR, TENTATIVE,
+                 WARNING_COLOR)
+from client import HSBot
 from panels import DELETE
-from cfg import WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR, ACCEPT, DECLINE, TENTATIVE
 
 WEEKDAYS = ("monday", "tuesday", "wednesday",
             "thursday", "friday", "saturday", "sunday")

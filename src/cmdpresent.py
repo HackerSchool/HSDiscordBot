@@ -1,9 +1,12 @@
-from typing import List
-from logging import ERROR
-import discord
-from cfg import WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR, MINIMUM_SUFFICIENT_ATTENDANCE_PERCENTAGE
 import datetime
 import logging
+from logging import ERROR
+from typing import List
+
+import discord
+
+from cfg import (ERROR_COLOR, MINIMUM_SUFFICIENT_ATTENDANCE_PERCENTAGE,
+                 SUCCESS_COLOR, WARNING_COLOR)
 from client import HSBot
 
 

@@ -1,22 +1,21 @@
 import os
 import pickle
-import pandas as pd
-
-from client import HSBot
-
-import aiohttp
-import discord
-
-from panels import YesNoActivePanel
-
 from enum import Enum, auto
 from itertools import combinations
 
+import aiohttp
+import discord
+import pandas as pd
+
+from cfg import (COLS_NAME_PAIRS, ERROR_COLOR, HEADER_NAME_PAIRS,
+                 HEADER_PROJECTS, NAME_PAIRS_FILE, NAMES_PREFIX,
+                 PROJECTS_CATEGORY, PROJECTS_PREFIX, SPRINT_PREFIX,
+                 SUCCESS_COLOR, WARNING_COLOR)
+from client import HSBot
+from gdrive import send_files
+from panels import YesNoActivePanel
 from project import make_new_project, member_from_participant
 
-from cfg import SPRINT_PREFIX, NAMES_PREFIX, PROJECTS_PREFIX, HEADER_NAME_PAIRS, HEADER_PROJECTS, COLS_NAME_PAIRS, NAME_PAIRS_FILE, PROJECTS_CATEGORY, WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
-
-from gdrive import send_files
 
 class Type(Enum):
     sprint = auto()

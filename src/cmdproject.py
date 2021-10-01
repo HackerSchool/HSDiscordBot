@@ -1,17 +1,18 @@
 import logging
 import os
-
-import discord
-from activepanel import ActivePanel
-from client import HSBot
 from typing import Optional
 
+import discord
+
+from activepanel import ActivePanel
+from cfg import ERROR_COLOR, PROJECTS_CATEGORY, SUCCESS_COLOR, WARNING_COLOR
 from choosable import NUMBERS
-from panels import DeletableActivePanel, YesNoActivePanel, ScrollableActivePanel, InputActivePanel
+from client import HSBot
 from jsonembed import json_to_embed
-from utils import basedir
-from cfg import PROJECTS_CATEGORY, WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
+from panels import (DeletableActivePanel, InputActivePanel,
+                    ScrollableActivePanel, YesNoActivePanel)
 from project import *
+from utils import basedir
 
 
 class CreateProjectYesNo(YesNoActivePanel):

@@ -1,11 +1,13 @@
-from typing import TypedDict, Union
-import discord
-from activepanel import ActivePanel
-from choosable import Choosable
-from panels import DeletableActivePanel
-from client import HSBot
-from cfg import NUMBERS, SUCCESS_COLOR
 from dataclasses import dataclass
+from typing import TypedDict, Union
+
+import discord
+
+from activepanel import ActivePanel
+from cfg import NUMBERS, SUCCESS_COLOR
+from choosable import Choosable
+from client import HSBot
+from panels import DeletableActivePanel
 
 
 @dataclass

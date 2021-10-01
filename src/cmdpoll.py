@@ -1,16 +1,16 @@
+import os
 from typing import Optional
+
 import discord
 
-from jsonembed import json_to_embed
-from utils import basedir
-import os
 from activepanel import ActivePanel
-from client import HSBot
-from panels import DeletableActivePanel, YesNoActivePanel, ScrollableActivePanel, InputActivePanel
 from cfg import ERROR_COLOR, NUMBERS, SUCCESS_COLOR, WARNING_COLOR
-
+from client import HSBot
+from jsonembed import json_to_embed
+from panels import (DeletableActivePanel, InputActivePanel,
+                    ScrollableActivePanel, YesNoActivePanel)
 from poll import Poll
-
+from utils import basedir
 
 
 class CreatePollYesNo(YesNoActivePanel):

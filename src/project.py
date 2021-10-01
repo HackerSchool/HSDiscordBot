@@ -2,13 +2,15 @@ import logging
 from typing import Optional
 
 import discord
+
+from cfg import (ERROR_COLOR, MANAGEMENT_ROLES, MASTER_FOLDER_ID,
+                 PROJECTS_CATEGORY, SUCCESS_COLOR, WARNING_COLOR)
 from client import HSBot
-
-from utils import get_category_named, get_role_named, get_text_channel_named, get_voice_channel_named, member_from_participant
+from gdrive import create_gdrive_folder, get_gdrive_folder_named
 from panels import DeletableActivePanel, YesNoActivePanel
-from cfg import PROJECTS_CATEGORY, WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR, MANAGEMENT_ROLES, MASTER_FOLDER_ID
+from utils import (get_category_named, get_role_named, get_text_channel_named,
+                   get_voice_channel_named, member_from_participant)
 
-from gdrive import get_gdrive_folder_named, create_gdrive_folder
 
 class DeleteProjectYesNo(YesNoActivePanel):
     def __init__(self, project_voice_channel, project_text_channel, project_role, project_folder, userid=None):

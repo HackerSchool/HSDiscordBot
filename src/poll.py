@@ -1,11 +1,14 @@
 
 from typing import TypedDict
-import discord 
+
+import discord
+
 from activepanel import ActivePanel
-from choosable import Choosable
-from panels import DeletableActivePanel
-from client import HSBot
 from cfg import NUMBERS, SUCCESS_COLOR
+from choosable import Choosable
+from client import HSBot
+from panels import DeletableActivePanel
+
 
 class Poll(ActivePanel):
     

@@ -1,16 +1,14 @@
 from datetime import datetime
 
-from discord import colour
+import discord
+from discord import colour, message
+from discord.channel import TextChannel, _channel_factory
 from discord.embeds import Embed
 
+from cfg import ERROR_COLOR, PROJECTS_CATEGORY, SUCCESS_COLOR, WARNING_COLOR
 from client import HSBot
-import discord
-from discord import message
-from discord.channel import TextChannel, _channel_factory
-from cfg import WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR, PROJECTS_CATEGORY
-from utils import get_category_named
 from panels import DeletableActivePanel
-from client import HSBot
+from utils import get_category_named
 
 
 async def used(client: HSBot, guild: discord.Guild, channel: discord.TextChannel, category_name: str = PROJECTS_CATEGORY):

@@ -1,14 +1,14 @@
+import os
+
 import discord
 from discord.message import Message
 from discord.reaction import Reaction
+
+from activepanel import ActivePanel
+from cfg import ACCEPT, DECLINE, DELETE
 from client import HSBot
 from jsonembed import json_to_embed
 from utils import basedir
-import os
-
-from activepanel import ActivePanel
-from cfg import DELETE, ACCEPT, DECLINE
-
 
 
 class DeletableActivePanel(ActivePanel):

@@ -1,6 +1,8 @@
 import os
 from typing import Optional, Union
+
 import discord
+
 
 def basedir(f):
     return os.path.abspath(os.path.join(f, os.pardir))

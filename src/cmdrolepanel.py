@@ -1,17 +1,18 @@
+import os
 from typing import Optional
+
 import discord
 from discord import message
 from discord.embeds import EmbedProxy
 
-from jsonembed import json_to_embed
-from utils import basedir, role_from_incomplete_name
-import os
 from activepanel import ActivePanel
-from client import HSBot
-from panels import DeletableActivePanel, YesNoActivePanel, ScrollableActivePanel, InputActivePanel
 from cfg import ERROR_COLOR, NUMBERS, SUCCESS_COLOR, WARNING_COLOR
-
-from rolepanel import RolePanel, ObtainableRole
+from client import HSBot
+from jsonembed import json_to_embed
+from panels import (DeletableActivePanel, InputActivePanel,
+                    ScrollableActivePanel, YesNoActivePanel)
+from rolepanel import ObtainableRole, RolePanel
+from utils import basedir, role_from_incomplete_name
 
 EMOJI_ADD = "▶"
 EMOJI_REMOVE = "⛔"

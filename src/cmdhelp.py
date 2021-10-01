@@ -1,10 +1,10 @@
 import os
 
 import discord
-from client import HSBot
 
-from jsonembed import json_to_embed
 from activepanel import ActivePanel
+from client import HSBot
+from jsonembed import json_to_embed
 from panels import DeletableActivePanel, ScrollableActivePanel
 from utils import basedir
 

@@ -5,8 +5,8 @@ import time
 
 import discord
 from discord.ext import tasks
-from cfg import WARNING_COLOR, SUCCESS_COLOR, ERROR_COLOR
 
+from cfg import ERROR_COLOR, SUCCESS_COLOR, WARNING_COLOR
 
 
 class HSBot(discord.Client):
