@@ -5,8 +5,7 @@ __*
 
 token
 deploy.bat
-credentials
+credentials.json
 client_secrets.json
 settings.yml
-src/credentials.json
 *.pkl

@@ -102,7 +102,6 @@ class Event(ActivePanel):
                 if cid is not None and mid is not None:
                     channel = await client.fetch_channel(cid)
                     self.message = await channel.fetch_message(mid)
-                    logging.info(f"Fetched message: {self.message}")
                     client.add_message_to_cache(self.message)
                     self.roles = []
                     for role in await self.message.guild.fetch_roles():
