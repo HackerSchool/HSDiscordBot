@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
-from typing import TypedDict, Union
+from typing import Any, Union
 
 import discord
 
@@ -35,22 +36,70 @@ class ObtainableRole:
 
 
 class RolePanel(ActivePanel):
-
     def __init__(self, roles: list[ObtainableRole], channel: discord.TextChannel, userid=None):
         self.dap = DeletableActivePanel(userid=userid)
         self.title: str = "React with emoji to obtain role!\nReact again to remove it!"
         self.roles: list[ObtainableRole] = roles
+        self._role_ids = None
         self.channel: discord.TextChannel = channel
+        self._channel_id = None
         self.userid = userid
         self.message: discord.Message
+        self._msg_channel_id = None
+        self.loaded = True
+        
+    @staticmethod
+    def _from_raw_data(uid, mcid, mid, rids, cid):
+        new_rolepanel = RolePanel([], None, userid=uid)
+        new_rolepanel._role_ids = rids
+        new_rolepanel._msg_channel_id = mcid, mid
+        new_rolepanel._channel_id = cid
+        new_rolepanel.loaded = False
+        return new_rolepanel
+        
+    def __reduce__(self) -> str | tuple[Any, ...]:
+        return (self._from_raw_data, (
+            self.userid,
+            self.message.channel.id if self.message is not None else None,
+            self.message.id if self.message is not None else None,
+            [(role.role.id, role.description, role.emoji) for role in self.roles] if self.roles is not None else [],
+            self.channel.id if self.channel is not None else None
+        ))
     
     @property
     def persistent(self):
         return True
 
     async def init(self, client: HSBot, message: discord.Message):
-        self.message = message
-        await self.dap.init(client, message)
+        if self.loaded:
+            self.message = message
+        else:
+            logging.info("Loading active panel (loaded from file)")
+            if self._msg_channel_id is not None:
+                cid, mid = self._msg_channel_id
+                if cid is not None and mid is not None:
+                    channel = await client.fetch_channel(cid)
+                    self.message = await channel.fetch_message(mid)
+                    client.add_message_to_cache(self.message)
+                    self.roles = []
+                    roles = await self.message.guild.fetch_roles()
+                    role_ids = tuple(role.id for role in roles)
+                    for roleid, roledesc, roleemoji in self._role_ids:
+                        try:
+                            i = role_ids.index(roleid)
+                            new_role = ObtainableRole(roles[i], roledesc, roleemoji)
+                            self.roles.append(new_role)
+                        except IndexError:
+                            pass
+                else:
+                    logging.error("No guild/message ID specified")
+                    return
+            else:
+                logging.error("No message ID specified")
+                return
+            if self._channel_id is not None:
+                self.channel = await client.fetch_channel(self._channel_id)
+        await self.dap.init(client, self.message)
 
     async def on_reaction(self, client: HSBot, reaction: discord.Reaction, user: discord.User):
         await self.dap.on_reaction(client, reaction, user)

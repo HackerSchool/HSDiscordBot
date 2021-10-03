@@ -64,7 +64,7 @@ class RolePanelCreator(ActivePanel):
 
         for role in self.roles:
             if role.role == None or role.description == None or role.emoji == None:
-                client.send_error(reaction.message.channel, "Not all fields are filled!")
+                await client.send_error(reaction.message.channel, "Not all fields are filled!")
                 return
 
         role_panel = RolePanel(self.roles, self.selected_channel, userid=user.id)

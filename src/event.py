@@ -23,7 +23,7 @@ class Event(ActivePanel):
     def __init__(self, name, description, start, duration, repeat, author, roles, delete_emoji=DELETE, userid=None):
         self.userid = userid
         self.message : Optional[discord.Message] = None
-        self._msg_guild_id : Tuple[int] | None = None
+        self._msg_channel_id : Tuple[int] | None = None
         self.name : str = name
         self.description : str = description
         self.start = start
@@ -98,9 +98,9 @@ class Event(ActivePanel):
         else:
             logging.info("Loading active panel (loaded from file)")
             if self._msg_channel_id is not None:
-                gid, mid = self._msg_channel_id
-                if gid is not None and mid is not None:
-                    channel = await client.fetch_channel(gid)
+                cid, mid = self._msg_channel_id
+                if cid is not None and mid is not None:
+                    channel = await client.fetch_channel(cid)
                     self.message = await channel.fetch_message(mid)
                     logging.info(f"Fetched message: {self.message}")
                     client.add_message_to_cache(self.message)
