@@ -165,21 +165,21 @@ class RolePanelCreator(ActivePanel):
                 await self.message.edit(embed=await self.sap.page_func())
 
         elif self.sap.page - 1 >= 0 and self.sap.page - 1 < len(self.roles):
-            if self.field == 1: # edit emoji
+            if self.field == 0: # edit emoji
                 try:
                     await self.message.add_reaction(message.content)
                     await self.message.remove_reaction(message.content, client.user)
                     self.roles[self.sap.page - 1].emoji = message.content
                 except discord.errors.HTTPException:
                     await client.send_error(self.message.channel, "I don't know that emoji, sorry!", active_panel= DeletableActivePanel())
-            if self.field == 2: # edit role
+            if self.field == 1: # edit role
                 new_role = role_from_incomplete_name(
                     self.server, message.content)
                 if isinstance(new_role, str):
                     await client.send_error(self.message.channel, new_role, DeletableActivePanel())
                 else:
                     self.roles[self.sap.page - 1].role = new_role
-            elif self.field == 3: # edit description
+            elif self.field == 2: # edit description
                 self.roles[self.sap.page - 1].description = message.content
             await self.message.edit(embed=await self.sap.page_func())
         await self.select_field(self.message)
