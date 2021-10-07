@@ -3,13 +3,13 @@
     "color": 7190903,
     "fields": [
         {
-            "name": "Text Channel",
-            "value": "",
+            "name": "Info",
+            "value": "Click the :arrow_forward: to add a new role. Click the :no_entry: to remove the role you're currently viewing.\n Use :arrow_up: and :arrow_down: to traverse through selectable fields, which you can change by sending a message.",
             "inline": false
         },
         {
-            "name": "Info",
-            "value": "Click the :arrow_forward: to add a new role. Click the :no_entry: to remove the role you're currently viewing",
+            "name": "Text Channel",
+            "value": "",
             "inline": false
         }
     ]

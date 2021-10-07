@@ -86,14 +86,14 @@ class RolePanelCreator(ActivePanel):
         await self.select_field(reaction.message)
 
     async def select_down(self, message: discord.Message):
-        fields = len(message.embeds[0].fields)
+        fields = len(message.embeds[0].fields) - 1
         if fields >= 2:
             self.field += 1
             self.field %= fields
             await self.select_field(message)
 
     async def select_up(self, message: discord.Message):
-        fields = len(message.embeds[0].fields)
+        fields = len(message.embeds[0].fields) - 1
         if fields >= 2:
             self.field -= 1
             self.field %= fields
@@ -103,8 +103,8 @@ class RolePanelCreator(ActivePanel):
         if self.field >= len(message.embeds[0].fields):
             self.field = len(message.embeds[0].fields) - 1
         embed = await self.sap.page_func()
-        field_as_new: EmbedProxy = embed.fields[self.field]
-        embed.set_field_at(self.field, name="**-->**" + field_as_new.name,
+        field_as_new: EmbedProxy = embed.fields[self.field + 1]
+        embed.set_field_at(self.field + 1, name=":point_right: " + field_as_new.name,
                            value=field_as_new.value, inline=field_as_new.inline)
         await self.message.edit(embed=embed)
 
@@ -133,26 +133,28 @@ class RolePanelCreator(ActivePanel):
         return await self.on_page_change(base_embed, self.sap.page)
 
     async def on_page_change(self, base : discord.Embed, page : int) -> discord.Embed:
-        title = base.fields[0].name
         if page == 0:
+            title = base.fields[1].name
             value = "**Selected: **"
             if self.current_channel == self.selected_channel:
                 value += f"Current channel ({self.current_channel.mention})"
             else:
                 value += f"{self.selected_channel.mention}"
             value += "\n(type the channel name to change it)"
-            base.set_field_at(0, name=title, value=value)
+            base.set_field_at(1, name=title, value=value)
 
         elif 0 <= page - 1 < len(self.roles):
+            title = base.fields[0].name
             # Number roles, always update their preview
             role = self.roles[page - 1]
-            title = f"[{page}] {title}"
+            title = f"Role {page} Preview"
             value = role.dm_preview()
             base.set_field_at(0, name=title, value=value)
             vals = [role.emoji, role.role, role.description]
             for i in range(1, 4):
-                #print(f"name={base.fields[i].name},value={str(vals[i-1])}")
                 base.set_field_at(i, name=base.fields[i].name, value=str(vals[i-1]), inline=base.fields[i].inline)
+        
+        base.set_footer(text=f"Page {page + 1}/{len(self.roles) + 1}")
         return base
 
     async def on_message(self, client: HSBot, message: discord.Message):
@@ -173,7 +175,6 @@ class RolePanelCreator(ActivePanel):
             if self.field == 2: # edit role
                 new_role = role_from_incomplete_name(
                     self.server, message.content)
-                #print(f"{new_role=}\n{new_role.name=}\n{new_role.id}")
                 if isinstance(new_role, str):
                     await client.send_error(self.message.channel, new_role, DeletableActivePanel())
                 else:
