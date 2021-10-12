@@ -102,9 +102,9 @@ class RolePanelCreator(ActivePanel):
             await self.select_field(message)
 
     async def select_field(self, message: discord.Message):
-        if self.field >= len(message.embeds[0].fields):
-            self.field = len(message.embeds[0].fields) - 1
-        embed = await self.sap.page_func()
+        embed: discord.Embed = await self.sap.page_func()
+        if self.field >= len(embed.fields):
+            self.field = len(embed.fields) - 1
         field_as_new: EmbedProxy = embed.fields[self.field + 1]
         embed.set_field_at(self.field + 1, name=":point_right: " + field_as_new.name,
                            value=field_as_new.value, inline=field_as_new.inline)
@@ -230,7 +230,7 @@ async def command_rolepanel(client: HSBot, message: discord.Message, args: list[
                                  1, message.author.id)
         channel = await message.author.create_dm()
         msg = await channel.send(embed=await panel.sap.page_func())
-        await client.add_active_panel(msg, panel)
+        await client.add_active_panel(msg, panel, timeout=120) # 2 hours to create rolepanel
     else:
         fail_embed = discord.Embed(
             title="Too many arguments", color=ERROR_COLOR)
