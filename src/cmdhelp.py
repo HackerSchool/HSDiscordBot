@@ -23,7 +23,7 @@ class HelpScrollable(ActivePanel):
 
     async def on_page_change(self, scrollable : ScrollableActivePanel):
         path = os.path.join(basedir(__file__), "rsrc",
-                            "help", f"page{scrollable.page+1}.json")
+                            "help", f"page{scrollable.page + 1}.json")
         with open(path, "r") as f:
             embed: discord.Embed = json_to_embed(f.read())
             embed.set_footer(text=f"Page {self.sap.page + 1}/{self.sap.pages}")
