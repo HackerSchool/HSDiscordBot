@@ -49,10 +49,10 @@ class RolePanelCreator(ActivePanel):
 
     async def on_reaction(self, client: HSBot, reaction: discord.Reaction, user: discord.User):
         self.message = reaction.message
-        await self.dap.on_reaction(client, reaction, user)
+        await self._on_reaction(client, reaction, user)
         await self.iap.on_reaction(client, reaction, user)
         await self.sap.on_reaction(client, reaction, user)
-        await self._on_reaction(client, reaction, user)
+        await self.dap.on_reaction(client, reaction, user)
 
     async def on_decline(self, yn: YesNoActivePanel, client: HSBot, reaction: discord.Reaction, user: discord.User):
         await yn.message.delete()
