@@ -49,13 +49,14 @@ class RolePanelCreator(ActivePanel):
 
     async def on_reaction(self, client: HSBot, reaction: discord.Reaction, user: discord.User):
         self.message = reaction.message
-        await self._on_reaction(client, reaction, user)
         await self.iap.on_reaction(client, reaction, user)
         await self.sap.on_reaction(client, reaction, user)
         await self.dap.on_reaction(client, reaction, user)
+        await self._on_reaction(client, reaction, user)
 
     async def on_decline(self, yn: YesNoActivePanel, client: HSBot, reaction: discord.Reaction, user: discord.User):
         await yn.message.delete()
+        self.message = None
 
     async def on_accept(self, yn: YesNoActivePanel, client: HSBot, reaction: discord.Reaction, user: discord.User):
         if len(self.roles) == 0:
@@ -83,7 +84,8 @@ class RolePanelCreator(ActivePanel):
             await self.select_down(reaction.message)
         if str(reaction.emoji) == EMOJI_UP:
             await self.select_up(reaction.message)
-        await self.select_field(reaction.message)
+        if self.message is not None:
+            await self.select_field(reaction.message)
 
     async def select_down(self, message: discord.Message):
         fields = len(message.embeds[0].fields) - 1
