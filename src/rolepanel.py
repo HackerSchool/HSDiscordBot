@@ -43,7 +43,7 @@ class RolePanel(ActivePanel):
         self._role_ids = None
         self.channel: discord.TextChannel = channel
         self._channel_id = None
-        self.userid = userid
+        self.userid = None
         self.message: discord.Message
         self._msg_channel_id = None
         self.loaded = True
