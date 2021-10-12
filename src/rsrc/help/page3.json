@@ -1,0 +1,10 @@
+{
+    "title": "Help (3)",
+    "color": 7190903,
+    "fields": [
+        {
+            "name": "`rolepanel`",
+            "value": "`rolepanel` sends the user a DM with a role panel creation interface.\nA role panel allows channel members to gain or remove a role by reacting to a message.\nYou will need to specify the channel it will be placed in and, for each role, the reaction emoji, the role itself and a description."
+        }
+    ]
+}

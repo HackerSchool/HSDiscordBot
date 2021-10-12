@@ -25,7 +25,9 @@ class HelpScrollable(ActivePanel):
         path = os.path.join(basedir(__file__), "rsrc",
                             "help", f"page{scrollable.page+1}.json")
         with open(path, "r") as f:
-            return json_to_embed(f.read())
+            embed: discord.Embed = json_to_embed(f.read())
+            embed.set_footer(text=f"Page {self.sap.page + 1}/{self.sap.pages}")
+            return embed
         
     async def on_reaction(self, client : HSBot, reaction : discord.Reaction, user : discord.User):
         if await self.sap.can_interact(client, user):
@@ -39,6 +41,7 @@ class HelpScrollable(ActivePanel):
 
 
 async def command_help(client : HSBot, message : discord.Message, args : list[str]):
-    s = HelpScrollable(2, message.author.id)
+    n_pages = len(os.listdir(os.path.join(basedir(__file__), "rsrc", "help")))
+    s = HelpScrollable(n_pages, message.author.id)
     msg = await message.channel.send(embed=await s.sap.page_func())
     await client.add_active_panel(msg, s)
