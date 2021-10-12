@@ -102,7 +102,8 @@ class RolePanel(ActivePanel):
         await self.dap.init(client, self.message)
 
     async def on_reaction(self, client: HSBot, reaction: discord.Reaction, user: discord.User):
-        await self.dap.on_reaction(client, reaction, user)
+        if await self.dap.can_interact(client, user):
+            await self.dap.on_reaction(client, reaction, user)
         await self._on_reaction(client, reaction, user)
 
     async def _on_reaction(self, client: HSBot, reaction: discord.Reaction, member: discord.Member):
