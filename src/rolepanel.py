@@ -82,12 +82,14 @@ class RolePanel(ActivePanel):
                     self.message = await channel.fetch_message(mid)
                     client.add_message_to_cache(self.message)
                     self.roles = []
-                    roles = await self.message.guild.fetch_roles()
-                    role_ids = tuple(role.id for role in roles)
+                    #roles = await self.message.guild.fetch_roles()
+                    #role_ids = tuple(role.id for role in roles)
                     for roleid, roledesc, roleemoji in self._role_ids:
                         try:
-                            i = role_ids.index(roleid)
-                            new_role = ObtainableRole(roles[i], roledesc, roleemoji)
+                            role = discord.utils.get(self.message.guild.roles, id=roleid)
+                            #i = role_ids.index(roleid)
+                            #new_role = ObtainableRole(roles[i], roledesc, roleemoji)
+                            new_role = ObtainableRole(role, roledesc, roleemoji)
                             self.roles.append(new_role)
                         except IndexError:
                             pass
