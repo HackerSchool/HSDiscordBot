@@ -62,7 +62,7 @@ class RolePanel(ActivePanel):
             self.userid,
             self.message.channel.id if self.message is not None else None,
             self.message.id if self.message is not None else None,
-            [(role.role.id, role.description, role.emoji) for role in self.roles] if self.roles is not None else [],
+            [(role.role.id if role is not None else 0, role.description, role.emoji) for role in self.roles] if self.roles is not None else [],
             self.channel.id if self.channel is not None else None
         ))
     
