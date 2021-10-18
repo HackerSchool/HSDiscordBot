@@ -2,6 +2,7 @@ import os
 import pickle
 from enum import Enum, auto
 from itertools import combinations
+import logging
 
 import aiohttp
 import discord
@@ -10,7 +11,8 @@ import pandas as pd
 from cfg import (COLS_NAME_PAIRS, ERROR_COLOR, HEADER_NAME_PAIRS,
                  HEADER_PROJECTS, NAME_PAIRS_FILE, NAMES_PREFIX,
                  PROJECTS_CATEGORY, PROJECTS_PREFIX, SPRINT_PREFIX,
-                 SUCCESS_COLOR, WARNING_COLOR)
+                 SUCCESS_COLOR, WARNING_COLOR, RECRUTAS_ROLE_NAME,
+                 RECRUTAS_ROLE_ID)
 from client import HSBot
 from gdrive import send_files
 from panels import YesNoActivePanel
@@ -204,10 +206,11 @@ async def handler_attachment(self, message):
             await self.add_active_panel(msg, yn)
 
 
-
-def add_member_name_change(client):
+# recrutas role ID=899586602043584562
+def process_new_member(client):
     @client.event
-    async def on_member_join(member):
+    async def on_member_join(member: discord.Member):
+        # Change his name if there is such an action was requested
         open(NAME_PAIRS_FILE,"a+")
         try:
             known_pairs = pickle.load(open(NAME_PAIRS_FILE,"rb"))
@@ -218,4 +221,12 @@ def add_member_name_change(client):
             if pair[0] == str(member):
                 await member.edit(nick = pair[1], reason="Name pair present in given file")
                 return
+
+        # Add "Recrutas" role
+        role_recrutas = discord.utils.get(member.guild.roles, id=RECRUTAS_ROLE_ID)
+        if role_recrutas == None:
+            role_recrutas = discord.utils.get(member.guild.roles, name=RECRUTAS_ROLE_NAME)
+
+        await member.add_roles(role_recrutas, reason="Joined server")
+        logging.info(f"Added role '{role_recrutas.name}' to new server member '{member.display_name}'")
 

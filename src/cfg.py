@@ -23,6 +23,9 @@ MANAGEMENT_ROLES = ("Chefes", "Dev", "RH", "Marketing")
 # google drive folder in which all other folders are located
 MASTER_FOLDER_ID = "1ofpR71Ljkq7VbVarSmkHWUB8JkPAUlj7"
 
+RECRUTAS_ROLE_NAME = "Recrutas"
+RECRUTAS_ROLE_ID = 899586602043584562
+
 # a user which is continuously present in least this % of the event guaranteed
 # is to be marked as present, when [prefix]presence time_minutes is run
 MINIMUM_SUFFICIENT_ATTENDANCE_PERCENTAGE = 10

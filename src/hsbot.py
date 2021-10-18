@@ -26,7 +26,7 @@ def setup(client : client.HSBot):
     
 
     client.add_custom_message_handler("sprint", sprint.handler_attachment)
-    sprint.add_member_name_change(client)
+    sprint.process_new_member(client)
 
 
 if __name__ == "__main__":
