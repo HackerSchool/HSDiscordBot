@@ -7,5 +7,6 @@ token
 deploy.bat
 credentials.json
 client_secrets.json
+client_secret.json
 settings.yml
 *.pkl
