@@ -61,7 +61,7 @@ class ScrollableActivePanel(ActivePanel):
             embed = await self._page_func(self)
             await self.message.edit(embed=embed)
             
-        if str(reaction.emoji) == self.previous_emoji or str(reaction.emoji) == self.next_emoji and not isinstance(reaction.message.channel, discord.channel.DMChannel):
+        if (str(reaction.emoji) == self.previous_emoji or str(reaction.emoji) == self.next_emoji) and not isinstance(reaction.message.channel, discord.channel.DMChannel):
             await reaction.remove(user=user)
             
     async def page_func(self):

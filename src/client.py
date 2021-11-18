@@ -60,7 +60,14 @@ class HSBot(discord.Client):
                         "timestamp": timestamp,
                         "timeout": timeout
                     }
-                    await panel.init(self, None)
+                    try:
+                        await panel.init(self, None)
+                        logging.info(
+                            f"Loaded panel {key, messageid, panel, timestamp, timeout}")
+                    except Exception as e:
+                        del self.active_panels[key][messageid]
+                        logging.error(
+                            f"Failed to load panel {key, messageid, panel, timestamp, timeout}: {e}")
             logging.info("Loaded!")
         except (FileNotFoundError, EOFError):
             logging.warning(f"Couldn't load save file '{self.save_path}'")

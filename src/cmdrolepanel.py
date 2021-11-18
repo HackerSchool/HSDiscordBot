@@ -104,7 +104,7 @@ class RolePanelCreator(ActivePanel):
     async def select_field(self, message: discord.Message):
         embed: discord.Embed = await self.sap.page_func()
         if self.field >= len(embed.fields):
-            self.field = len(embed.fields) - 1
+            self.field = len(embed.fields) - 2
         field_as_new: EmbedProxy = embed.fields[self.field + 1]
         embed.set_field_at(self.field + 1, name=":point_right: " + field_as_new.name,
                            value=field_as_new.value, inline=field_as_new.inline)
