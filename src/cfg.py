@@ -30,6 +30,10 @@ RECRUTAS_ROLE_ID = 899586602043584562
 # is to be marked as present, when [prefix]presence time_minutes is run
 MINIMUM_SUFFICIENT_ATTENDANCE_PERCENTAGE = 10
 
+# poll duration in minutes - if a poll is started, it will delete itself after
+# this long
+POLL_TIMEOUT_M = 60*24*7  # 1 week
+
 ################### Attachment detection ###################
 
 ##### file name triggers #####

@@ -19,9 +19,11 @@ def authenticate():
             logging.log(logging.INFO, "Access token automatically renewed.")
         except:
             auth_url = gauth.GetAuthUrl()
-            logging.log(logging.WARNING, f"Need new refresh token. Visit URL below, sign in to the bot's account, and input the code.\n{auth_url}")
-            code = input("Code: ") # NOT GOOD, TEMPORARY FIX
-            gauth.Auth(code)
+            #logging.log(logging.WARNING, f"Need new refresh token. Visit URL below, sign in to the bot's account, and input the code.\n{auth_url}")
+            logging.log(
+                logging.ERROR, f"Need new refresh token.\n{auth_url}")
+            #code = input("Code: ") # NOT GOOD, TEMPORARY FIX
+            #gauth.Auth(code)
         finally:
             gauth.SaveCredentialsFile()
 

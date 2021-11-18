@@ -6,7 +6,7 @@ from typing import Optional
 import discord
 
 from activepanel import ActivePanel
-from cfg import ERROR_COLOR, NUMBERS, SUCCESS_COLOR, WARNING_COLOR
+from cfg import ERROR_COLOR, NUMBERS, POLL_TIMEOUT_M, SUCCESS_COLOR, WARNING_COLOR
 from client import HSBot
 from jsonembed import json_to_embed
 from panels import (DeletableActivePanel, InputActivePanel,
@@ -29,7 +29,7 @@ class CreatePollYesNo(YesNoActivePanel):
         poll_panel = Poll(self.poll_name, self.options, self.poll_channel)
         poll_msg = await poll_panel.send_msg()
 
-        await client.add_active_panel(poll_msg, poll_panel)
+        await client.add_active_panel(poll_msg, poll_panel, timeout=POLL_TIMEOUT_M)
 
         if self.dm == False:
             await reaction.message.clear_reactions()
@@ -211,4 +211,4 @@ async def command_poll(client : HSBot, message : discord.Message, args : list[st
         msg_scc = await message.channel.send(embed=discord.Embed(title="Are you sure you want to create this poll?", colour=WARNING_COLOR, description = "\n".join([name, ", ".join(options)])))
         yn = CreatePollYesNo(
             message.guild, name, options, message.channel, userid=None, dm=False)
-        await client.add_active_panel(msg_scc, yn)
+        await client.add_active_panel(msg_scc, yn, timeout=POLL_TIMEOUT_M)

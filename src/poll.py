@@ -1,6 +1,8 @@
 from __future__ import annotations
+import logging
 
 from typing import TypedDict
+from typing import Any, Union
 
 import discord
 
@@ -22,12 +24,65 @@ class Poll(ActivePanel):
         self.votes : list[TypedDict('Vote', {'user': discord.User, 'idx' : int})] = []
         self.channel : discord.TextChannel = channel
         self.userid = userid
-        self.message : discord.Message
+        self.message: discord.Message
+        self.loaded = True
+        self._vote_info = None
+        self._msg_id = None
+        self._channel_id = None
+
+    @staticmethod
+    def _from_raw_data(uid, mid, vinfo, cid, title, options, totals):
+        new_poll = Poll(title, options, None, userid=uid)
+
+        new_poll._vote_info = vinfo
+        new_poll._msg_id = mid
+        new_poll._channel_id = cid
+        new_poll.loaded = False
+        new_poll.totals = totals
+        new_poll.loaded = False
+        return new_poll
+
+    def __reduce__(self) -> str | tuple[Any, ...]:
+        return (self._from_raw_data, (
+            self.userid,
+            self.message.id,
+            [{'userid': vote['user'].id, 'idx': vote['idx']}
+                for vote in self.votes],
+            self.channel.id,
+            self.title,
+            self.options,
+            self.totals
+        ))
+
+    @property
+    def persistent(self):
+        return True
 
     async def init(self, client : HSBot, message : discord.Message):
-        self.message = message
-        await self.dap.init(client, message)
-        await self.cap.init(client, message)
+        if self.loaded:
+            self.message = message
+        else:
+            if self._channel_id is not None:
+                self.channel = await client.fetch_channel(self._channel_id)
+                if self._msg_id is not None:
+                    self.message = await self.channel.fetch_message(self._msg_id)
+                    client.add_message_to_cache(self.message)
+                    self.votes = [{
+                            'user': client.get_user(vote['userid']), 
+                            'idx': vote['idx']
+                        } for vote in self._vote_info
+                    ]
+                
+                    self.loaded = True
+                else:
+                    logging.error("No message ID found for poll")
+                    return
+            else:
+                logging.error("No channel ID found for poll")
+                return
+
+        await self.dap.init(client, self.message)
+        await self.cap.init(client, self.message)
 
     async def on_reaction(self, client: HSBot, reaction: discord.Reaction, user: discord.User):
         await self.dap.on_reaction(client, reaction, user)
