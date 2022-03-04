@@ -37,7 +37,6 @@ class ObtainableRole:
 
 class RolePanel(ActivePanel):
     def __init__(self, roles: list[ObtainableRole], channel: discord.TextChannel, userid=None):
-        self.dap = DeletableActivePanel(userid=userid)
         self.title: str = "React with emoji to obtain role!\nReact again to remove it!"
         self.roles: list[ObtainableRole] = roles
         self._role_ids = None
@@ -101,11 +100,8 @@ class RolePanel(ActivePanel):
                 return
             if self._channel_id is not None:
                 self.channel = await client.fetch_channel(self._channel_id)
-        await self.dap.init(client, self.message)
 
     async def on_reaction(self, client: HSBot, reaction: discord.Reaction, user: discord.User):
-        if await self.dap.can_interact(client, user):
-            await self.dap.on_reaction(client, reaction, user)
         await self._on_reaction(client, reaction, user)
 
     async def _on_reaction(self, client: HSBot, reaction: discord.Reaction, member: discord.Member):

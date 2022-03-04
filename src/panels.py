@@ -87,7 +87,8 @@ class YesNoActivePanel(ActivePanel):
     async def init(self, client : HSBot, message : discord.Message):
         self.message = message
         await message.add_reaction(self.confirm_emoji)
-        await message.add_reaction(self.decline_emoji)
+        if self.on_decline is not None:
+            await message.add_reaction(self.decline_emoji)
         
     async def on_reaction(self, client : HSBot, reaction : discord.Reaction, user : discord.User):
         if str(reaction.emoji) == self.confirm_emoji:

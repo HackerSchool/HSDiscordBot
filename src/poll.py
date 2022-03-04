@@ -17,7 +17,6 @@ class Poll(ActivePanel):
     
     def __init__(self, title : str, options : list[str], channel: discord.TextChannel, userid=None):
         self.cap = Choosable(self.on_choose)
-        self.dap = DeletableActivePanel(userid=userid)
         self.title : str = title
         self.options : list[str] = options
         self.totals : list[int] = [0]*len(options)
@@ -81,11 +80,9 @@ class Poll(ActivePanel):
                 logging.error("No channel ID found for poll")
                 return
 
-        await self.dap.init(client, self.message)
         await self.cap.init(client, self.message)
 
     async def on_reaction(self, client: HSBot, reaction: discord.Reaction, user: discord.User):
-        await self.dap.on_reaction(client, reaction, user)
         await self.cap.on_reaction(client, reaction, user)
 
     async def on_choose(self, client : HSBot, reaction : discord.Reaction, user: discord.User, index : int):
