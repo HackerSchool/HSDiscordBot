@@ -17,7 +17,7 @@ def json_to_embed(string : str) -> discord.Embed:
     data = json.loads(string)
 
     embed = discord.Embed()
-    empty = discord.Embed.Empty
+    empty = None
 
     for field in ("title", "description", "color", "url"):
         if field in data and data[field] != "" and data[field] is not None:

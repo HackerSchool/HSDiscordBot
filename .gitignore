@@ -2,6 +2,7 @@ __*
 .mypy_cache
 .pytest_cache
 .vscode
+venv/
 
 token
 deploy.bat

@@ -18,6 +18,7 @@ class HSBot(discord.Client):
     def __init__(self, prefix : str, sprint_path=".", save_path="./data.pkl"):
         intents = discord.Intents.default()
         intents.members = True
+        intents.message_content = True
         super().__init__(intents=intents)
 
         self.fetch_offline_members = True
@@ -240,6 +241,7 @@ class HSBot(discord.Client):
 
     async def on_message(self, message):
         """Event triggered when a user sends a message"""
+        print("WT ACTUAL FUCK", message.content)
         if message.author == self.user:
             return
 

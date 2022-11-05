@@ -7,7 +7,8 @@ ERROR_COLOR = 0xff0000
 # TENTATIVE is only for events
 ACCEPT, DECLINE, TENTATIVE = "✅", "❌", "❓"
 
-DELETE = "<:delete:827871952336715776>"
+# DELETE = "<:delete:827871952336715776>"
+DELETE = "❌"
 
 NUMBERS = ("0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣",
            "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟")
